@@ -1,132 +1,61 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acesso por Código</title>
-    
+    <title>Registro por Código</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
         }
         
         .container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
+            background: white;
             padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             max-width: 500px;
-            width: 100%;
-            text-align: center;
-        }
-        
-        .logo {
-            width: 80px;
-            height: 80px;
-            background: #1a2980;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            margin: 0 auto 20px;
+            width: 90%;
         }
         
         h1 {
-            color: #1a2980;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-        
-        .subtitle {
-            color: #666;
+            color: #333;
             margin-bottom: 30px;
-            font-size: 16px;
-        }
-        
-        .code-input {
-            width: 100%;
-            padding: 15px;
-            font-size: 24px;
-            text-align: center;
-            letter-spacing: 8px;
-            border: 3px solid #ddd;
-            border-radius: 10px;
-            margin: 20px 0;
-            font-weight: bold;
-            outline: none;
-            transition: all 0.3s;
-        }
-        
-        .code-input:focus {
-            border-color: #1a2980;
-            box-shadow: 0 0 0 3px rgba(26, 41, 128, 0.2);
-        }
-        
-        .btn {
-            background: #1a2980;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            width: 100%;
-            margin-top: 10px;
-        }
-        
-        .btn:hover {
-            background: #152066;
-            transform: translateY(-2px);
-        }
-        
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
         }
         
         .status {
             padding: 15px;
             border-radius: 10px;
             margin: 20px 0;
+            font-weight: bold;
             display: none;
         }
         
-        .status.success {
+        .success {
             background: #d4edda;
             color: #155724;
             border: 2px solid #c3e6cb;
             display: block;
         }
         
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 2px solid #f5c6cb;
-            display: block;
-        }
-        
-        .status.loading {
+        .loading {
             background: #fff3cd;
             color: #856404;
             border: 2px solid #ffeaa7;
+            display: block;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
             display: block;
         }
         
@@ -135,299 +64,140 @@
             padding: 20px;
             border-radius: 10px;
             margin: 20px 0;
-            text-align: left;
-            display: none;
-        }
-        
-        .user-info.show {
-            display: block;
-        }
-        
-        .user-info h3 {
-            color: #1a2980;
-            margin-bottom: 10px;
-        }
-        
-        .user-detail {
-            margin: 8px 0;
-            font-size: 16px;
-        }
-        
-        .user-detail strong {
-            color: #555;
-            display: inline-block;
-            width: 120px;
+            font-size: 18px;
         }
         
         .spinner {
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-top-color: #667eea;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             display: inline-block;
             margin-right: 10px;
-            vertical-align: middle;
         }
         
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
         
-        .info-text {
-            font-size: 14px;
-            color: #666;
-            margin-top: 20px;
-            line-height: 1.5;
-        }
-        
-        .footer {
+        .info {
             margin-top: 30px;
-            color: #888;
+            color: #666;
             font-size: 14px;
-        }
-        
-        @media (max-width: 480px) {
-            .container {
-                padding: 20px;
-            }
-            
-            .code-input {
-                font-size: 20px;
-                padding: 12px;
-            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">🔒</div>
-        
-        <h1>Acesso por Código</h1>
-        <p class="subtitle">Digite o código único recebido por email</p>
+        <h1>✅ Registro de Acesso</h1>
         
         <div class="status" id="status"></div>
         
         <div class="user-info" id="userInfo">
-            <h3>👤 Informações do Usuário</h3>
-            <div class="user-detail">
-                <strong>Nome:</strong> <span id="userName">-</span>
-            </div>
-            <div class="user-detail">
-                <strong>Email:</strong> <span id="userEmail">-</span>
-            </div>
-            <div class="user-detail">
-                <strong>Departamento:</strong> <span id="userDept">-</span>
-            </div>
+            Aguardando código...
         </div>
         
-        <input 
-            type="text" 
-            id="codeInput" 
-            class="code-input" 
-            placeholder="EX: A1B2C3D4"
-            maxlength="8"
-            autocomplete="off"
-            autocapitalize="characters"
-        >
-        
-        <button class="btn" id="verifyBtn" onclick="verifyCode()">
-            <span id="btnText">✅ Verificar Código</span>
-            <span id="btnSpinner" class="spinner" style="display: none;"></span>
-        </button>
-        
-        <div class="info-text">
-            <p>🔐 Seu código foi enviado por email e é pessoal/intransferível.</p>
-            <p>📧 O código não contém seu nome, garantindo sua privacidade.</p>
-        </div>
-        
-        <div class="footer">
-            Sistema de Registro de Acessos | Versão Segura
+        <div class="info">
+            <p>Sistema de registro automático</p>
+            <p>Seu acesso está sendo registrado</p>
         </div>
     </div>
 
     <script>
-        // Configuração - SUBSTITUA com sua URL do Google Apps Script
-        const GOOGLE_SCRIPT_URL = 'SUA_URL_DO_GOOGLE_APPS_SCRIPT';
+        // Configuração - COLE SUA URL AQUI!
+        const GOOGLE_SCRIPT_URL = 'SUA_URL_DO_GOOGLE_APPS_SCRIPT_AQUI';
         
         // Elementos DOM
-        const codeInput = document.getElementById('codeInput');
-        const verifyBtn = document.getElementById('verifyBtn');
-        const btnText = document.getElementById('btnText');
-        const btnSpinner = document.getElementById('btnSpinner');
         const statusDiv = document.getElementById('status');
         const userInfo = document.getElementById('userInfo');
-        const userName = document.getElementById('userName');
-        const userEmail = document.getElementById('userEmail');
-        const userDept = document.getElementById('userDept');
         
-        // Focar no input ao carregar
-        codeInput.focus();
+        // Função para pegar código da URL
+        function getCodigoFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('c') || 
+                   urlParams.get('codigo') || 
+                   urlParams.get('code') || 
+                   'SEMCODIGO';
+        }
         
-        // Formatar código enquanto digita (maiúsculas)
-        codeInput.addEventListener('input', function() {
-            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        });
-        
-        // Permitir Enter para enviar
-        codeInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                verifyCode();
-            }
-        });
-        
-        // Atualizar status
-        function updateStatus(message, type) {
+        // Função para mostrar status
+        function showStatus(message, type) {
             statusDiv.textContent = message;
             statusDiv.className = 'status ' + type;
         }
         
-        // Habilitar/desabilitar botão
-        function setLoading(isLoading) {
-            verifyBtn.disabled = isLoading;
-            btnText.style.display = isLoading ? 'none' : 'inline';
-            btnSpinner.style.display = isLoading ? 'inline-block' : 'none';
-        }
-        
-        // Verificar código
-        async function verifyCode() {
-            const code = codeInput.value.trim();
-            
-            if (!code || code.length !== 8) {
-                updateStatus('❌ O código deve ter 8 caracteres (letras e números)', 'error');
-                codeInput.focus();
-                return;
-            }
-            
-            setLoading(true);
-            updateStatus('🔍 Verificando código...', 'loading');
-            userInfo.classList.remove('show');
-            
+        // Função para obter IP
+        async function getIP() {
             try {
-                // 1. Buscar informações do usuário
-                const params = new URLSearchParams({
-                    action: 'getUserByCode',
-                    code: code
-                });
-                
-                const response = await fetch(`${GOOGLE_SCRIPT_URL}?${params}`);
+                const response = await fetch('https://api.ipify.org?format=json');
                 const data = await response.json();
-                
-                if (data.error) {
-                    updateStatus(`❌ ${data.error}`, 'error');
-                    codeInput.select();
-                    return;
-                }
-                
-                // 2. Mostrar informações do usuário
-                userName.textContent = data.name;
-                userEmail.textContent = data.email;
-                userDept.textContent = data.department || 'Não informado';
-                userInfo.classList.add('show');
-                
-                updateStatus(`✅ Olá, ${data.name}!`, 'success');
-                
-                // 3. Coletar informações do dispositivo
-                const deviceInfo = await collectDeviceInfo();
-                
-                // 4. Registrar acesso
-                await registerAccess(code, data.name, deviceInfo);
-                
-                // 5. Limpar campo após sucesso
-                setTimeout(() => {
-                    codeInput.value = '';
-                    userInfo.classList.remove('show');
-                    updateStatus('✅ Acesso registrado com sucesso!', 'success');
-                    setTimeout(() => {
-                        updateStatus('', '');
-                        codeInput.focus();
-                    }, 3000);
-                }, 2000);
-                
-            } catch (error) {
-                updateStatus(`❌ Erro: ${error.message}`, 'error');
-                console.error('Erro:', error);
-            } finally {
-                setLoading(false);
-            }
-        }
-        
-        // Coletar informações do dispositivo
-        async function collectDeviceInfo() {
-            let ip = 'Desconhecido';
-            
-            try {
-                const ipResponse = await fetch('https://api.ipify.org?format=json');
-                const ipData = await ipResponse.json();
-                ip = ipData.ip;
+                return data.ip;
             } catch (e) {
-                console.log('Erro ao obter IP:', e);
+                return 'desconhecido';
             }
-            
-            // Detectar navegador
-            function detectBrowser() {
-                const ua = navigator.userAgent;
-                if (ua.includes('Chrome') && !ua.includes('Edg')) return 'Chrome';
-                if (ua.includes('Firefox')) return 'Firefox';
-                if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
-                if (ua.includes('Edg')) return 'Edge';
-                if (ua.includes('MSIE') || ua.includes('Trident/')) return 'Internet Explorer';
-                return 'Desconhecido';
-            }
-            
-            // Detectar sistema operacional
-            function detectOS() {
-                const ua = navigator.userAgent;
-                if (ua.includes('Windows')) return 'Windows';
-                if (ua.includes('Mac')) return 'macOS';
-                if (ua.includes('Linux')) return 'Linux';
-                if (ua.includes('Android')) return 'Android';
-                if (ua.includes('iOS')) return 'iOS';
-                return 'Desconhecido';
-            }
-            
-            return {
-                ip: ip,
-                browser: detectBrowser(),
-                os: detectOS(),
-                resolution: `${window.screen.width}x${window.screen.height}`,
-                pageUrl: window.location.href
-            };
         }
         
-        // Registrar acesso no Google Sheets
-        async function registerAccess(code, userName, deviceInfo) {
+        // Função principal
+        async function registrarAcesso() {
             try {
-                const params = new URLSearchParams({
-                    action: 'registerAccess',
-                    code: code,
-                    ip: deviceInfo.ip,
-                    browser: deviceInfo.browser,
-                    os: deviceInfo.os,
-                    resolution: deviceInfo.resolution,
-                    pageUrl: deviceInfo.pageUrl
-                });
+                // Mostrar carregando
+                showStatus('Coletando informações...', 'loading');
                 
-                const response = await fetch(`${GOOGLE_SCRIPT_URL}?${params}`);
-                const data = await response.json();
+                // Pegar código da URL
+                const codigo = getCodigoFromURL();
+                userInfo.textContent = `Código: ${codigo}`;
                 
-                if (!data.success) {
-                    console.warn('Aviso: Acesso registrado localmente mas não no servidor');
+                // Coletar informações
+                const ip = await getIP();
+                const navegador = navigator.userAgent;
+                const sistema = navigator.platform;
+                const resolucao = `${window.screen.width}x${window.screen.height}`;
+                
+                // Preparar dados
+                const dados = {
+                    codigo: codigo,
+                    ip: ip,
+                    agent: navegador,
+                    os: sistema,
+                    res: resolucao,
+                    url: window.location.href
+                };
+                
+                // Enviar para Google Sheets
+                showStatus('Enviando dados...', 'loading');
+                
+                const params = new URLSearchParams(dados);
+                const resposta = await fetch(`${GOOGLE_SCRIPT_URL}?${params}`);
+                const resultado = await resposta.text();
+                
+                // Mostrar resultado
+                if (resultado.includes('OK:')) {
+                    const nome = resultado.replace('OK: ', '').replace(' registrado', '');
+                    userInfo.textContent = `👤 ${nome}`;
+                    showStatus('✅ Registro concluído!', 'success');
+                    
+                    // Esconder status após 3 segundos
+                    setTimeout(() => {
+                        statusDiv.style.display = 'none';
+                    }, 3000);
+                } else {
+                    showStatus('⚠️ Registrado com código apenas', 'loading');
+                    userInfo.textContent = `Código: ${codigo} (sem nome cadastrado)`;
                 }
                 
-                return data;
-            } catch (error) {
-                console.error('Erro ao registrar acesso:', error);
-                return { success: false, error: error.message };
+                console.log('Registro completo:', dados);
+                
+            } catch (erro) {
+                showStatus('❌ Erro no registro', 'error');
+                userInfo.textContent = 'Erro ao processar';
+                console.error('Erro:', erro);
             }
         }
         
-        // Auto-foco e limpeza de URL (remove parâmetros)
-        if (window.location.search) {
-            // Remove parâmetros da URL sem recarregar
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
+        // Executar quando carregar
+        window.addEventListener('load', registrarAcesso);
     </script>
 </body>
 </html>
