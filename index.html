@@ -3,49 +3,163 @@
 <head>
   <meta charset="utf-8">
   <title>Registro de Acesso</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .info-box {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    .form-box {
+      background-color: #e8f4f8;
+      padding: 20px;
+      border-radius: 5px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0 15px 0;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
 </head>
 <body>
 
-<div id="info" style="font-family: Arial; padding: 20px;"></div>
+<div class="info-box">
+  <h2>Registro de Acesso</h2>
+  <div id="info"></div>
+</div>
+
+<hr>
+
+<div class="form-box">
+  <h3>Formulário de Contato</h3>
+  <form id="contactForm">
+    <label for="nome">Nome:</label>
+    <input type="text" id="nome" name="nome" required>
+    
+    <label for="email">E-mail:</label>
+    <input type="email" id="email" name="email" required>
+    
+    <label for="mensagem">Mensagem:</label>
+    <textarea id="mensagem" name="mensagem" rows="4" required></textarea>
+    
+    <button type="submit">Enviar</button>
+  </form>
+</div>
 
 <script>
+// Elemento para exibir informações
+const infoDiv = document.getElementById('info');
+
 async function registrarAcesso() {
     const urlParams = new URLSearchParams(window.location.search);
-    const user = urlParams.get("u") || "desconhecido";
+    const user = urlParams.get("u") || "visitante";
 
     let ip = "desconhecido";
+    let localizacao = "desconhecida";
 
-    // esperar REALMENTE o IP antes de continuar
+    // Coleta informações do usuário
     try {
-        const resp = await fetch("https://api.ipify.org?format=json");
-        const json = await resp.json();
-        ip = json.ip;
+        // Obter IP
+        const ipResp = await fetch("https://api.ipify.org?format=json");
+        const ipJson = await ipResp.json();
+        ip = ipJson.ip;
+        
+        // Tentar obter localização (opcional)
+        try {
+            const locResp = await fetch(`https://ipapi.co/${ip}/json/`);
+            const locJson = await locResp.json();
+            localizacao = `${locJson.city || ''}, ${locJson.country_name || ''}`.replace(/^, |, $/g, '');
+        } catch (e) {
+            console.log("Não foi possível obter localização");
+        }
     } catch (e) {
         console.log("Erro ao pegar IP:", e);
     }
 
     const agent = navigator.userAgent;
+    const resolucao = `${window.screen.width}x${window.screen.height}`;
+    const idioma = navigator.language || navigator.userLanguage;
+    const online = navigator.onLine ? "Online" : "Offline";
 
+    // Exibir informações na tela
+    infoDiv.innerHTML = `
+        <p><strong>Usuário:</strong> ${user}</p>
+        <p><strong>IP:</strong> ${ip}</p>
+        <p><strong>Localização:</strong> ${localizacao}</p>
+        <p><strong>Idioma:</strong> ${idioma}</p>
+        <p><strong>Resolução:</strong> ${resolucao}</p>
+        <p><strong>Status:</strong> ${online}</p>
+        <p><strong>Navegador:</strong> ${navigator.appName}</p>
+    `;
+
+    // Endpoint do Google Apps Script (substitua pelo seu)
     const endpoint = "https://script.google.com/macros/s/AKfycby-pe7jjk_GWwzIJoszKDcThV0AClgqUEkdd1YKymV4ywRuGu7zrIpKLcS68cqT_5oetw/exec";
 
+    // Enviar dados para registro
     try {
-        const send = await fetch(`${endpoint}?user=${encodeURIComponent(user)}&ip=${encodeURIComponent(ip)}&agent=${encodeURIComponent(agent)}`);
+        const params = new URLSearchParams({
+            user: user,
+            ip: ip,
+            agent: agent,
+            resolucao: resolucao,
+            idioma: idioma,
+            localizacao: localizacao,
+            online: online
+        });
+
+        const send = await fetch(`${endpoint}?${params.toString()}`);
         const text = await send.text();
-        console.log("Resposta:", text);
+        console.log("Registro enviado:", text);
     } catch (err) {
         console.log("Erro ao registrar:", err);
     }
 }
 
-// garantir execução somente após toda página carregar
-window.addEventListener("load", registrarAcesso);
+// Formulário de contato
+document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const nome = document.getElementById('nome').value;
+    const email = document.getElementById('email').value;
+    const mensagem = document.getElementById('mensagem').value;
+    
+    alert(`Obrigado, ${nome}! Sua mensagem foi recebida.`);
+    
+    // Aqui você pode adicionar código para enviar o formulário
+    // para outro endpoint do Google Apps Script
+    
+    // Limpar formulário
+    this.reset();
+});
+
+// Executar registro quando a página carregar
+window.addEventListener('load', registrarAcesso);
+
+// Atualizar informações se a janela for redimensionada
+window.addEventListener('resize', () => {
+    const resolucao = `${window.screen.width}x${window.screen.height}`;
+    document.querySelector('p strong:contains("Resolução")')?.nextSibling?.textContent = ` ${resolucao}`;
+});
 </script>
 
-
-
-<hr>
-
-<!-- Formulário -->
-<div style="font-family: Arial; padding: 20px;">
-  <h3>Formulário</h3>
-  <form>
+</body>
+</html>
