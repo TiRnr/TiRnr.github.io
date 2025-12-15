@@ -609,34 +609,31 @@
         }
         
         // Função para enviar dados via AJAX
-        async function submitFormData(formData) {
-            try {
-                // Adicionar informações do cliente
-                const clientInfo = collectClientInfo();
-                for (const [key, value] of Object.entries(clientInfo)) {
-                    formData.append(`client_${key}`, value);
-                }
-                
-                // Adicionar flag de origem
-                formData.append('form_origin', 'auto_identification');
-                
-                // Enviar via AJAX
-                const response = await fetch(FORM_ACTION_URL, {
-                    method: 'POST',
-                    body: formData,
-                    mode: 'no-cors' // Usar no-cors para evitar problemas CORS
-                });
-                
-                // Em modo no-cors não podemos verificar a resposta
-                // Mas assumimos sucesso se não houver erro de rede
-                console.log('Dados enviados com sucesso');
-                return true;
-                
-            } catch (error) {
-                console.error('Erro ao enviar dados:', error);
-                return false;
-            }
+async function submitFormData(formData) {
+    try {
+        // Se for envio manual, usar FormSubmit
+        const submissionType = formData.get('submission_type');
+        
+        if (submissionType === 'manual') {
+            // Enviar via FormSubmit (recarrega página)
+            form.setAttribute('target', '_blank'); // Abrir em nova aba
+            form.submit();
+            return true;
+        } else {
+            // Envio automático - usar AJAX com no-cors como antes
+            const response = await fetch(FORM_ACTION_URL, {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors'
+            });
+            return true;
         }
+        
+    } catch (error) {
+        console.error('Erro ao enviar dados:', error);
+        return false;
+    }
+}
         
         // Função para preencher com dados de exemplo (para envio automático)
         function fillWithSampleData() {
@@ -891,5 +888,6 @@
     </script>
 </body>
 </html>
+
 
 
