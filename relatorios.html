@@ -282,6 +282,11 @@
     </style>
 </head>
 <body>
+
+    
+<p>ID Hash: <span id="hash"></span></p>
+<p>ID User: <span id="user"></span></p>
+    
     <div class="container">
         <div class="header">
             <div class="user-avatar">👤</div>
@@ -400,8 +405,20 @@
             </p>
         </div>
     </div>
+<script>
+    const params = new URLSearchParams(window.location.search);
 
+    const id_hash = params.get("id_hash");
+    const id_user = params.get("id_user");
+
+    document.getElementById("hash").textContent = id_hash;
+    document.getElementById("user").textContent = id_user;
+</script>
+
+    
     <script>
+
+        
         // ==============================================
         // CONFIGURAÇÕES DO SISTEMA
         // ==============================================
@@ -1021,4 +1038,5 @@
     </script>
 </body>
 </html>
+
 
