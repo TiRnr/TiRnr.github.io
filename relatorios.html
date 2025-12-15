@@ -79,6 +79,7 @@
         
         .detected-name {
             background: linear-gradient(135deg, #4a6ee0, #8a2be2);
+            -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: bold;
         }
@@ -241,6 +242,43 @@
             color: #9b2c2c;
             border: 1px solid #fc8181;
         }
+        
+        .server-connection {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .status-online {
+            background: #38a169;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-offline {
+            background: #e53e3e;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
     </style>
 </head>
 <body>
@@ -252,6 +290,17 @@
         </div>
         
         <div class="content">
+            <!-- Status da conexão com o servidor -->
+            <div class="server-connection" id="serverConnection">
+                <div class="connection-status">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Conectando ao servidor...</span>
+                </div>
+                <div style="font-size: 0.9rem; margin-top: 5px;">
+                    Servidor: <code id="serverUrl">http://servweb:8686/teste/</code>
+                </div>
+            </div>
+            
             <div class="identification-area">
                 <h2 style="text-align: center; color: #4a6ee0; margin-bottom: 20px;">
                     Identificando Usuário...
@@ -262,7 +311,7 @@
                         <div class="progress-fill" id="progressFill"></div>
                     </div>
                     <div id="progressText" style="text-align: center; color: #666;">
-                        Iniciando processo de identificação...
+                        Conectando ao sistema de identificação...
                     </div>
                 </div>
                 
@@ -353,13 +402,97 @@
     </div>
 
     <script>
-        // Sistema AVANÇADO de identificação de usuário
+        // ==============================================
+        // CONFIGURAÇÕES DO SISTEMA
+        // ==============================================
+        
+        // URL do seu servidor PHP LOCAL
+        const PHP_SERVER_URL = 'http://servweb:8686/teste';
+        
+        // Estado do sistema
         let detectedUserName = null;
         let detectionMethod = 'Não identificado';
         let confidenceLevel = 0;
         let techniquesTried = [];
         let userIP = '';
         let computerInfo = {};
+        let serverConnected = false;
+        
+        // ==============================================
+        // FUNÇÕES DE CONEXÃO COM O SERVIDOR
+        // ==============================================
+        
+        // Atualizar status da conexão
+        function updateConnectionStatus(connected, message = '') {
+            serverConnected = connected;
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            if (connected) {
+                statusDot.className = 'status-dot status-online';
+                statusText.textContent = message || 'Conectado ao servidor';
+                statusText.style.color = '#38a169';
+            } else {
+                statusDot.className = 'status-dot status-offline';
+                statusText.textContent = message || 'Desconectado do servidor';
+                statusText.style.color = '#e53e3e';
+            }
+        }
+        
+        // Testar conexão com o servidor
+        async function testServerConnection() {
+            try {
+                updateConnectionStatus(false, 'Testando conexão...');
+                
+                // Tentar acessar o endpoint de ping
+                const response = await fetch(`${PHP_SERVER_URL}/get_username.php?mode=ping`, {
+                    method: 'GET',
+                    mode: 'no-cors', // Modo no-cors para evitar problemas CORS
+                    cache: 'no-store'
+                });
+                
+                // Se chegou aqui, a conexão foi estabelecida
+                updateConnectionStatus(true, 'Servidor online ✓');
+                return true;
+                
+            } catch (error) {
+                console.log('Tentativa de conexão falhou, tentando métodos alternativos...');
+                
+                // Tentar método alternativo usando image para testar conexão
+                return await testConnectionAlternative();
+            }
+        }
+        
+        // Método alternativo para testar conexão
+        async function testConnectionAlternative() {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = function() {
+                    updateConnectionStatus(true, 'Servidor online (método alternativo) ✓');
+                    resolve(true);
+                };
+                img.onerror = function() {
+                    updateConnectionStatus(false, 'Servidor offline ❌');
+                    resolve(false);
+                };
+                
+                // Tentar carregar uma imagem do servidor
+                img.src = `${PHP_SERVER_URL}/get_username.php?mode=ping&t=${Date.now()}`;
+                img.style.display = 'none';
+                document.body.appendChild(img);
+                
+                setTimeout(() => {
+                    if (!img.complete) {
+                        updateConnectionStatus(false, 'Timeout na conexão ⏱️');
+                        resolve(false);
+                    }
+                }, 3000);
+            });
+        }
+        
+        // ==============================================
+        // FUNÇÕES DE IDENTIFICAÇÃO LOCAL (JavaScript)
+        // ==============================================
         
         // Atualizar progresso
         function updateProgress(percent, text) {
@@ -380,7 +513,7 @@
         // Atualizar nome na tela
         function updateUserNameDisplay(name, method) {
             const nameElement = document.getElementById('userNameResult');
-            if (name && name !== 'Desconhecido') {
+            if (name && name !== 'Desconhecido' && name !== 'Visitante') {
                 nameElement.textContent = `Olá, ${name}!`;
                 nameElement.style.fontSize = '2.5rem';
                 nameElement.style.color = '#2c5282';
@@ -390,474 +523,310 @@
             }
         }
         
-        // TÉCNICA 1: WebRTC para informações de rede (pode revelar hostname)
-        async function tryWebRTCIdentification() {
-            updateProgress(20, 'Analisando conexão de rede...');
+        // ==============================================
+        // COLETAR INFORMAÇÕES DO CLIENTE
+        // ==============================================
+        
+        async function collectClientInfo() {
+            updateProgress(30, 'Coletando informações do sistema...');
             
+            const info = {
+                // Informações básicas
+                timestamp: new Date().toISOString(),
+                page_url: window.location.href,
+                referrer: document.referrer || 'direct',
+                
+                // Informações do navegador
+                user_agent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                languages: navigator.languages,
+                
+                // Informações da tela
+                screen_width: screen.width,
+                screen_height: screen.height,
+                window_width: window.innerWidth,
+                window_height: window.innerHeight,
+                color_depth: screen.colorDepth,
+                
+                // Timezone
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                
+                // Cookies habilitados
+                cookies_enabled: navigator.cookieEnabled,
+                
+                // Plugins
+                plugins_count: navigator.plugins ? navigator.plugins.length : 0,
+                
+                // Conexão
+                online_status: navigator.onLine,
+                
+                // Sessão
+                session_id: 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+            };
+            
+            // Tentar obter IP público
+            try {
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                info.public_ip = ipData.ip;
+                userIP = ipData.ip;
+                
+                addTechnique('IP Público', `Detectado: ${ipData.ip}`, true);
+            } catch (error) {
+                info.public_ip = 'Não detectado';
+                addTechnique('IP Público', 'Não foi possível detectar', false);
+            }
+            
+            // Tentar WebRTC para informações de rede
+            try {
+                const webrtcInfo = await tryWebRTCIdentification();
+                info.webrtc = webrtcInfo;
+                addTechnique('WebRTC', 'Informações de rede coletadas', true);
+            } catch (error) {
+                addTechnique('WebRTC', 'Não disponível', false);
+            }
+            
+            // Tentar dispositivos de mídia
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                info.media_devices = devices.map(d => ({
+                    kind: d.kind,
+                    label: d.label ? d.label.substring(0, 50) : 'Sem label'
+                }));
+                addTechnique('Dispositivos', `${devices.length} dispositivos encontrados`, true);
+            } catch (error) {
+                addTechnique('Dispositivos', 'Não disponível', false);
+            }
+            
+            return info;
+        }
+        
+        // Função WebRTC simplificada
+        async function tryWebRTCIdentification() {
             return new Promise((resolve) => {
                 try {
-                    const pc = new RTCPeerConnection({
-                        iceServers: [],
-                        iceCandidatePoolSize: 10
-                    });
+                    const pc = new RTCPeerConnection({iceServers: []});
+                    pc.createDataChannel('');
+                    pc.createOffer().then(offer => pc.setLocalDescription(offer));
                     
                     let candidates = [];
                     
                     pc.onicecandidate = (e) => {
                         if (e.candidate) {
-                            const candidate = e.candidate.candidate;
-                            candidates.push(candidate);
-                            
-                            // Extrair informações úteis
-                            if (candidate.includes('host')) {
-                                const parts = candidate.split(' ');
-                                if (parts.length > 4) {
-                                    const host = parts[4];
-                                    if (host.includes('.local') || host.includes('.corp')) {
-                                        resolve({
-                                            type: 'webrtc_hostname',
-                                            hostname: host,
-                                            candidates: candidates
-                                        });
-                                        pc.close();
-                                        return;
-                                    }
-                                }
-                            }
+                            candidates.push(e.candidate.candidate);
                         } else {
-                            // Todos os candidatos coletados
+                            pc.close();
                             resolve({
-                                type: 'webrtc_candidates',
-                                candidates: candidates,
-                                hasHostInfo: candidates.some(c => c.includes('host'))
+                                has_candidates: candidates.length > 0,
+                                candidate_count: candidates.length
                             });
-                            pc.close();
                         }
                     };
                     
-                    pc.createDataChannel('detection');
-                    pc.createOffer()
-                        .then(offer => pc.setLocalDescription(offer))
-                        .catch(() => {
-                            resolve(null);
-                            pc.close();
-                        });
-                    
-                    // Timeout
                     setTimeout(() => {
-                        resolve({
-                            type: 'webrtc_timeout',
-                            candidates: candidates
-                        });
                         pc.close();
-                    }, 3000);
-                    
+                        resolve({
+                            has_candidates: candidates.length > 0,
+                            candidate_count: candidates.length
+                        });
+                    }, 1000);
                 } catch (error) {
-                    resolve(null);
+                    resolve({ error: error.message });
                 }
             });
         }
         
-        // TÉCNICA 2: Fingerprinting avançado
-        async function performAdvancedFingerprinting() {
-            updateProgress(40, 'Criando impressão digital do navegador...');
-            
-            const fingerprint = {
-                // Informações básicas
-                userAgent: navigator.userAgent,
-                platform: navigator.platform,
-                language: navigator.language,
-                languages: navigator.languages,
-                
-                // Hardware
-                hardwareConcurrency: navigator.hardwareConcurrency,
-                deviceMemory: navigator.deviceMemory,
-                maxTouchPoints: navigator.maxTouchPoints,
-                
-                // Tela
-                screen: {
-                    width: screen.width,
-                    height: screen.height,
-                    colorDepth: screen.colorDepth,
-                    pixelDepth: screen.pixelDepth
-                },
-                
-                // Plugins
-                plugins: [],
-                mimeTypes: []
-            };
-            
-            // Coletar plugins
-            if (navigator.plugins) {
-                for (let i = 0; i < navigator.plugins.length; i++) {
-                    fingerprint.plugins.push({
-                        name: navigator.plugins[i].name,
-                        description: navigator.plugins[i].description
-                    });
-                }
+        // ==============================================
+        // COMUNICAÇÃO COM O SERVIDOR PHP
+        // ==============================================
+        
+        // Enviar dados para o servidor
+        async function sendToServer(data) {
+            if (!serverConnected) {
+                console.log('Servidor offline, dados não enviados');
+                return false;
             }
             
-            // Canvas fingerprinting
             try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = 300;
-                canvas.height = 150;
+                // Usar FormData para evitar problemas CORS
+                const formData = new FormData();
+                formData.append('data', JSON.stringify(data));
                 
-                // Texto com fonte específica
-                ctx.textBaseline = 'alphabetic';
-                ctx.fillStyle = '#f60';
-                ctx.fillRect(0, 0, 300, 150);
-                ctx.fillStyle = '#069';
-                ctx.font = '16px Arial, sans-serif';
-                ctx.fillText('Browser Fingerprint Test', 10, 50);
+                const response = await fetch(`${PHP_SERVER_URL}/get_username.php`, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors' // Modo no-cors para evitar problemas
+                });
                 
-                // Imagem
-                const dataUrl = canvas.toDataURL();
-                fingerprint.canvas = dataUrl.substring(0, 100);
-                
-            } catch (e) {
-                fingerprint.canvas = 'error';
-            }
-            
-            // WebGL fingerprinting
-            try {
-                const canvas = document.createElement('canvas');
-                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-                if (gl) {
-                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-                    if (debugInfo) {
-                        fingerprint.webgl = {
-                            vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
-                            renderer: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
-                        };
-                    }
-                }
-            } catch (e) {}
-            
-            return fingerprint;
-        }
-        
-        // TÉCNICA 3: Tentar detectar ambiente Windows/AD
-        async function tryWindowsDetection() {
-            updateProgress(60, 'Verificando ambiente Windows/Active Directory...');
-            
-            const detection = {
-                isWindows: navigator.platform.includes('Win'),
-                userAgentWindows: navigator.userAgent.includes('Windows'),
-                possibleUsername: null,
-                possibleDomain: null
-            };
-            
-            // Padrões comuns em user agent
-            const patterns = [
-                // Windows NT 10.0; Win64; x64
-                /Windows NT (\d+\.\d+)/,
-                // Usuários podem ter nomes em plugins ou outros lugares
-            ];
-            
-            // Verificar se há referências a nomes em cookies (se tivermos acesso)
-            try {
-                if (document.cookie) {
-                    const cookies = document.cookie.split(';');
-                    for (const cookie of cookies) {
-                        const [name, value] = cookie.trim().split('=');
-                        if (name.toLowerCase().includes('user') || name.toLowerCase().includes('name')) {
-                            detection.possibleUsername = decodeURIComponent(value);
-                            break;
-                        }
-                    }
-                }
-            } catch (e) {}
-            
-            return detection;
-        }
-        
-        // TÉCNICA 4: Forçar login via popup (para redes que pedem autenticação)
-        function tryAuthenticationPopup() {
-            updateProgress(80, 'Tentando autenticação...');
-            
-            // Esta técnica tenta forçar uma janela de autenticação
-            // Nota: Isso só funciona se o servidor estiver configurado para pedir autenticação
-            
-            return new Promise((resolve) => {
-                // Criar uma imagem que tenta acessar um recurso protegido
-                const img = new Image();
-                img.onload = () => resolve({ status: 'loaded', noAuth: true });
-                img.onerror = () => resolve({ status: 'error', mayNeedAuth: true });
-                
-                // Tentar carregar uma imagem de um caminho que pode exigir autenticação
-                img.src = '/.authcheck';
-                
-                setTimeout(() => resolve({ status: 'timeout' }), 2000);
-            });
-        }
-        
-        // TÉCNICA 5: Detectar via APIs específicas (quando disponíveis)
-        async function trySpecificAPIs() {
-            const results = {};
-            
-            // Media Devices (pode ter nomes de dispositivos com nomes de usuário)
-            try {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                results.mediaDevices = devices.map(d => ({
-                    kind: d.kind,
-                    label: d.label,
-                    deviceId: d.deviceId
-                }));
-                
-                // Procurar por nomes nos labels
-                for (const device of devices) {
-                    if (device.label) {
-                        // Padrões: "Microfone (Nome do Usuário)", "Webcam de João", etc.
-                        const namePatterns = [
-                            /de\s+([A-Za-zÀ-ú]+(?:\s+[A-Za-zÀ-ú]+)*)/i,
-                            /\(([A-Za-zÀ-ú]+(?:\s+[A-Za-zÀ-ú]+)*)\)/,
-                            /-\s*([A-Za-zÀ-ú]+)/i
-                        ];
-                        
-                        for (const pattern of namePatterns) {
-                            const match = device.label.match(pattern);
-                            if (match && match[1]) {
-                                const name = match[1].trim();
-                                if (name.length >= 2 && name.length <= 30) {
-                                    results.possibleNameFromDevice = name;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            } catch (e) {
-                results.mediaDevicesError = e.message;
-            }
-            
-            // Battery API (pode ter informações específicas)
-            if ('getBattery' in navigator) {
-                try {
-                    const battery = await navigator.getBattery();
-                    results.battery = {
-                        charging: battery.charging,
-                        level: battery.level,
-                        chargingTime: battery.chargingTime,
-                        dischargingTime: battery.dischargingTime
-                    };
-                } catch (e) {}
-            }
-            
-            return results;
-        }
-        
-        // TÉCNICA 6: IP e Geolocalização
-        async function getNetworkInfo() {
-            updateProgress(90, 'Obtendo informações de rede...');
-            
-            try {
-                // Tentar múltiplos serviços de IP
-                const ipServices = [
-                    'https://api.ipify.org?format=json',
-                    'https://api64.ipify.org?format=json',
-                    'https://ipinfo.io/json',
-                    'https://ipapi.co/json/'
-                ];
-                
-                for (const service of ipServices) {
-                    try {
-                        const response = await fetch(service, { timeout: 2000 });
-                        if (response.ok) {
-                            const data = await response.json();
-                            userIP = data.ip;
-                            
-                            let location = null;
-                            let org = null;
-                            let hostname = null;
-                            
-                            if (service.includes('ipinfo')) {
-                                location = data.city ? `${data.city}, ${data.country}` : null;
-                                org = data.org || null;
-                                hostname = data.hostname || null;
-                            } else if (service.includes('ipapi')) {
-                                location = data.city ? `${data.city}, ${data.country_name}` : null;
-                                org = data.org || null;
-                            }
-                            
-                            return {
-                                ip: data.ip,
-                                location: location,
-                                org: org,
-                                hostname: hostname,
-                                service: service
-                            };
-                        }
-                    } catch (e) {
-                        continue;
-                    }
-                }
-                
-                return { ip: 'Não detectado', location: null };
+                // Em modo no-cors não podemos ler a resposta
+                console.log('Dados enviados para o servidor');
+                return true;
                 
             } catch (error) {
-                return { ip: 'Erro na detecção', location: null };
+                console.log('Erro ao enviar dados:', error);
+                return false;
             }
         }
         
-        // TÉCNICA 7: Tentar acessar informações do sistema via Java/ActiveX (para IE antigo)
-        function tryLegacyMethods() {
-            const results = {};
+        // Buscar identificação do servidor
+        async function fetchServerIdentification() {
+            if (!serverConnected) {
+                return null;
+            }
             
-            // Para Internet Explorer antigo (ActiveX)
             try {
-                if (window.ActiveXObject) {
-                    try {
-                        const network = new ActiveXObject("WScript.Network");
-                        results.legacyComputerName = network.ComputerName;
-                        results.legacyUserName = network.UserName;
-                        results.legacyUserDomain = network.UserDomain;
-                        results.legacyMethod = 'ActiveX';
-                    } catch (e) {
-                        results.legacyError = e.message;
-                    }
-                }
-            } catch (e) {}
-            
-            // Java Applet (não funciona mais na maioria dos navegadores)
-            results.javaAvailable = typeof navigator.javaEnabled === 'function' ? 
-                                   navigator.javaEnabled() : false;
-            
-            return results;
-        }
-        
-        // Analisar todas as informações coletadas para extrair nome
-        function analyzeCollectedData(allData) {
-            updateProgress(95, 'Analisando dados coletados...');
-            
-            let bestName = null;
-            let bestMethod = 'Não identificado';
-            let confidence = 0;
-            
-            // 1. Verificar métodos legacy (mais confiáveis se funcionarem)
-            if (allData.legacyMethods.legacyUserName) {
-                bestName = allData.legacyMethods.legacyUserName;
-                bestMethod = 'ActiveX/WScript (Windows)';
-                confidence = 95;
-                addTechnique('ActiveX Detection', `Usuário: ${bestName}`, true);
-            }
-            
-            // 2. Verificar dispositivos de mídia
-            if (!bestName && allData.specificAPIs.possibleNameFromDevice) {
-                bestName = allData.specificAPIs.possibleNameFromDevice;
-                bestMethod = 'Dispositivo de Mídia';
-                confidence = 70;
-                addTechnique('Media Device Analysis', `Nome detectado: ${bestName}`, true);
-            }
-            
-            // 3. Verificar WebRTC para hostname
-            if (!bestName && allData.webrtc && allData.webrtc.hostname) {
-                const hostname = allData.webrtc.hostname;
-                // Tentar extrair nome do hostname
-                const namePatterns = [
-                    /^([a-zA-Z]+)\./,
-                    /-([a-zA-Z]+)\./,
-                    /([a-zA-Z]+)[0-9]*\./
-                ];
+                // Usar parâmetros GET para evitar problemas CORS
+                const url = `${PHP_SERVER_URL}/get_username.php?mode=identify&t=${Date.now()}&ua=${encodeURIComponent(navigator.userAgent)}`;
                 
-                for (const pattern of namePatterns) {
-                    const match = hostname.match(pattern);
-                    if (match && match[1]) {
-                        const possibleName = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
-                        if (possibleName.length >= 2) {
-                            bestName = possibleName;
-                            bestMethod = 'Hostname de Rede (WebRTC)';
-                            confidence = 60;
-                            addTechnique('WebRTC Hostname', `Extraído: ${bestName} de ${hostname}`, true);
-                            break;
-                        }
+                // Tentar usar fetch com mode 'cors' primeiro
+                try {
+                    const response = await fetch(url, {
+                        method: 'GET',
+                        mode: 'cors',
+                        cache: 'no-store'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        return data;
                     }
+                } catch (corsError) {
+                    console.log('CORS error, tentando método alternativo...');
+                    
+                    // Método alternativo usando script tag
+                    return await fetchWithScriptTag(url);
                 }
+                
+            } catch (error) {
+                console.log('Erro ao buscar identificação:', error);
+                return null;
             }
-            
-            // 4. Verificar informações da organização do IP
-            if (!bestName && allData.networkInfo.org) {
-                const org = allData.networkInfo.org;
-                // Padrões como "Google LLC", "Vivo SA", "Empresa do João Silva"
-                const namePattern = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g;
-                const matches = org.match(namePattern);
-                if (matches && matches.length > 1) {
-                    // Pega o segundo match (geralmente o nome)
-                    bestName = matches[1];
-                    bestMethod = 'Informações da Organização';
-                    confidence = 50;
-                    addTechnique('Organization Info', `Possível nome: ${bestName}`, true);
-                }
-            }
-            
-            // Se não encontrou nome, mostrar técnicas tentadas
-            if (!bestName) {
-                bestName = 'Visitante';
-                bestMethod = 'Não foi possível identificar';
-                confidence = 0;
-                addTechnique('Análise Completa', 'Nenhum nome identificado', false);
-            }
-            
-            return {
-                name: bestName,
-                method: bestMethod,
-                confidence: confidence,
-                allData: allData
-            };
         }
         
-        // Processo principal de identificação
+        // Método alternativo usando script tag (JSONP-like)
+        async function fetchWithScriptTag(url) {
+            return new Promise((resolve) => {
+                const callbackName = 'callback_' + Date.now();
+                
+                window[callbackName] = function(data) {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    resolve(data);
+                };
+                
+                const script = document.createElement('script');
+                script.src = `${url}&callback=${callbackName}`;
+                script.onerror = () => {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    resolve(null);
+                };
+                
+                document.body.appendChild(script);
+                
+                // Timeout
+                setTimeout(() => {
+                    if (window[callbackName]) {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        resolve(null);
+                    }
+                }, 5000);
+            });
+        }
+        
+        // ==============================================
+        // PROCESSO PRINCIPAL DE IDENTIFICAÇÃO
+        // ==============================================
+        
         async function performIdentification() {
             try {
-                const allData = {};
+                // Passo 1: Testar conexão com servidor
+                updateProgress(10, 'Conectando ao servidor...');
+                const connected = await testServerConnection();
                 
-                // Executar todas as técnicas em paralelo quando possível
-                updateProgress(10, 'Iniciando identificação...');
+                if (connected) {
+                    addTechnique('Conexão Servidor', 'Estabelecida com sucesso', true);
+                } else {
+                    addTechnique('Conexão Servidor', 'Servidor offline', false);
+                }
                 
-                const [
-                    webrtcResult,
-                    fingerprint,
-                    windowsDetection,
-                    specificAPIs,
-                    networkInfo,
-                    legacyMethods
-                ] = await Promise.allSettled([
-                    tryWebRTCIdentification(),
-                    performAdvancedFingerprinting(),
-                    tryWindowsDetection(),
-                    trySpecificAPIs(),
-                    getNetworkInfo(),
-                    tryLegacyMethods()
-                ]);
+                // Passo 2: Coletar informações locais
+                const clientInfo = await collectClientInfo();
+                computerInfo = clientInfo;
                 
-                // Coletar resultados
-                allData.webrtc = webrtcResult.value;
-                allData.fingerprint = fingerprint.value;
-                allData.windowsDetection = windowsDetection.value;
-                allData.specificAPIs = specificAPIs.value;
-                allData.networkInfo = networkInfo.value;
-                allData.legacyMethods = legacyMethods.value;
+                // Passo 3: Tentar identificar via servidor
+                updateProgress(60, 'Consultando servidor de identificação...');
                 
-                // Analisar dados
-                const analysis = analyzeCollectedData(allData);
+                let serverData = null;
+                if (connected) {
+                    serverData = await fetchServerIdentification();
+                }
+                
+                // Passo 4: Analisar resultados
+                updateProgress(80, 'Analisando dados coletados...');
+                
+                let finalName = 'Visitante';
+                let finalMethod = 'Não identificado';
+                let finalConfidence = 0;
+                
+                // Prioridade 1: Dados do servidor
+                if (serverData && serverData.user_name && serverData.user_name !== 'Visitante') {
+                    finalName = serverData.user_name;
+                    finalMethod = serverData.method || 'Servidor PHP';
+                    finalConfidence = serverData.confidence || 80;
+                    addTechnique('Identificação Servidor', `Usuário: ${finalName}`, true);
+                }
+                // Prioridade 2: IP Público conhecido
+                else if (clientInfo.public_ip) {
+                    // Aqui você poderia ter uma lista de IPs conhecidos
+                    finalName = `Usuário ${clientInfo.public_ip.substring(clientInfo.public_ip.lastIndexOf('.') + 1)}`;
+                    finalMethod = 'Endereço IP';
+                    finalConfidence = 30;
+                    addTechnique('Identificação IP', `Baseado no IP: ${clientInfo.public_ip}`, true);
+                }
+                // Prioridade 3: Nome salvo localmente
+                else {
+                    const savedName = localStorage.getItem('userIdentifiedName');
+                    if (savedName) {
+                        finalName = savedName;
+                        finalMethod = 'Nome salvo anteriormente';
+                        finalConfidence = 90;
+                        addTechnique('Local Storage', `Nome recuperado: ${finalName}`, true);
+                    } else {
+                        addTechnique('Identificação', 'Nenhum método funcionou', false);
+                    }
+                }
                 
                 // Definir resultados globais
-                detectedUserName = analysis.name;
-                detectionMethod = analysis.method;
-                confidenceLevel = analysis.confidence;
-                computerInfo = allData;
-                userIP = allData.networkInfo?.ip || '';
+                detectedUserName = finalName;
+                detectionMethod = finalMethod;
+                confidenceLevel = finalConfidence;
                 
                 // Atualizar interface
-                updateUserNameDisplay(detectedUserName, detectionMethod);
+                updateUserNameDisplay(finalName, finalMethod);
                 updateProgress(100, 'Identificação completa!');
                 
                 // Mostrar detalhes
-                showUserDetails(analysis);
+                showUserDetails({
+                    name: finalName,
+                    method: finalMethod,
+                    confidence: finalConfidence,
+                    data: { clientInfo, serverData }
+                });
                 
-                // Enviar dados para o servidor
-                sendDataToServer(analysis);
+                // Enviar dados para o servidor (se conectado)
+                if (connected) {
+                    await sendToServer({
+                        identification: {
+                            user_name: finalName,
+                            method: finalMethod,
+                            confidence: finalConfidence,
+                            client_info: clientInfo
+                        }
+                    });
+                }
                 
             } catch (error) {
                 console.error('Erro na identificação:', error);
@@ -866,7 +835,7 @@
                 
                 // Fallback
                 detectedUserName = 'Visitante';
-                updateUserNameDisplay(detectedUserName, 'Erro na detecção');
+                updateUserNameDisplay('Visitante', 'Erro na detecção');
                 showUserDetails({
                     name: 'Visitante',
                     method: 'Erro na detecção',
@@ -875,7 +844,10 @@
             }
         }
         
-        // Mostrar detalhes do usuário
+        // ==============================================
+        // FUNÇÕES DE INTERFACE
+        // ==============================================
+        
         function showUserDetails(analysis) {
             document.getElementById('userDetails').style.display = 'block';
             
@@ -885,30 +857,36 @@
             document.getElementById('confidenceLevel').textContent = analysis.confidence + '%';
             
             // Informações do sistema
-            const compName = computerInfo.legacyMethods?.legacyComputerName || 
-                           computerInfo.webrtc?.hostname?.split('.')[0] || 
-                           'Não detectado';
+            const compName = computerInfo.webrtc?.hostname || 'Não detectado';
             document.getElementById('computerName').textContent = compName;
             
-            const winUser = computerInfo.legacyMethods?.legacyUserName || 
-                          computerInfo.windowsDetection?.possibleUsername || 
-                          'Não detectado';
-            document.getElementById('windowsUser').textContent = winUser;
-            
-            const domain = computerInfo.legacyMethods?.legacyUserDomain || 
-                         computerInfo.networkInfo?.hostname?.split('.').slice(1).join('.') || 
-                         'Não detectado';
-            document.getElementById('domainName').textContent = domain;
+            // Verificar se é Windows
+            const isWindows = navigator.userAgent.includes('Windows');
+            document.getElementById('windowsUser').textContent = isWindows ? 'Sistema Windows' : 'Outro sistema';
             
             // Informações de rede
-            document.getElementById('userIp').textContent = userIP;
-            document.getElementById('networkHostname').textContent = 
-                computerInfo.networkInfo?.hostname || 'Não detectado';
-            document.getElementById('userLocation').textContent = 
-                computerInfo.networkInfo?.location || 'Não detectada';
+            document.getElementById('userIp').textContent = userIP || computerInfo.public_ip || 'Não detectado';
+            document.getElementById('networkHostname').textContent = compName;
+            
+            // Tentar obter localização aproximada pelo IP
+            if (userIP) {
+                try {
+                    fetch(`https://ipapi.co/${userIP}/json/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.city && data.country_name) {
+                                document.getElementById('userLocation').textContent = 
+                                    `${data.city}, ${data.country_name}`;
+                            }
+                        });
+                } catch (e) {
+                    document.getElementById('userLocation').textContent = 'Não detectada';
+                }
+            } else {
+                document.getElementById('userLocation').textContent = 'Não detectada';
+            }
         }
         
-        // Salvar nome fornecido pelo usuário
         function saveUserName() {
             const input = document.getElementById('userNameInput');
             const name = input.value.trim();
@@ -924,7 +902,7 @@
                 confidenceLevel = 100;
                 
                 // Atualizar interface
-                updateUserNameDisplay(detectedUserName, detectionMethod);
+                updateUserNameDisplay(formattedName, 'Fornecido pelo usuário');
                 document.getElementById('detectedName').textContent = formattedName;
                 document.getElementById('detectionMethod').textContent = 'Fornecido pelo usuário';
                 document.getElementById('confidenceLevel').textContent = '100%';
@@ -937,12 +915,13 @@
                 localStorage.setItem('userIdentificationMethod', 'user_provided');
                 localStorage.setItem('userIdentificationTime', new Date().toISOString());
                 
-                // Enviar para servidor
-                sendDataToServer({
-                    name: formattedName,
-                    method: 'user_provided',
-                    confidence: 100
-                });
+                // Enviar para servidor (se conectado)
+                if (serverConnected) {
+                    sendToServer({
+                        user_provided_name: formattedName,
+                        action: 'user_saved_name'
+                    });
+                }
                 
                 // Limpar input
                 input.value = '';
@@ -952,7 +931,6 @@
             }
         }
         
-        // Mostrar mensagem
         function showMessage(text, type) {
             const msgDiv = document.getElementById('statusMessage');
             msgDiv.textContent = text;
@@ -964,46 +942,12 @@
             }, 5000);
         }
         
-        // Enviar dados para o servidor
-        async function sendDataToServer(analysis) {
-            const dataToSend = {
-                timestamp: new Date().toISOString(),
-                userName: detectedUserName,
-                detectionMethod: detectionMethod,
-                confidenceLevel: confidenceLevel,
-                userIP: userIP,
-                computerInfo: computerInfo,
-                userAgent: navigator.userAgent,
-                platform: navigator.platform,
-                screenResolution: `${screen.width}x${screen.height}`,
-                referrer: document.referrer || 'Acesso direto',
-                url: window.location.href,
-                techniquesTried: techniquesTried,
-                localStorage: {
-                    hasSavedName: !!localStorage.getItem('userIdentifiedName'),
-                    savedName: localStorage.getItem('userIdentifiedName')
-                }
-            };
-            
-            try {
-                const response = await fetch('get_username.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(dataToSend)
-                });
-                
-                const result = await response.json();
-                console.log('Dados enviados:', result);
-                
-            } catch (error) {
-                console.error('Erro ao enviar dados:', error);
-            }
-        }
+        // ==============================================
+        // INICIALIZAÇÃO
+        // ==============================================
         
-        // Verificar se já tem nome salvo
-        function checkSavedName() {
+        async function init() {
+            // Verificar se já tem nome salvo primeiro
             const savedName = localStorage.getItem('userIdentifiedName');
             if (savedName) {
                 detectedUserName = savedName;
@@ -1022,20 +966,11 @@
                     updateProgress(100, 'Nome recuperado do histórico');
                 }, 1000);
                 
-                return true;
+                return;
             }
-            return false;
-        }
-        
-        // Inicializar
-        async function init() {
-            // Verificar se já tem nome salvo primeiro
-            const hasSavedName = checkSavedName();
             
-            if (!hasSavedName) {
-                // Executar identificação completa
-                await performIdentification();
-            }
+            // Executar identificação completa
+            await performIdentification();
             
             // Adicionar evento ao input para submit com Enter
             document.getElementById('userNameInput').addEventListener('keypress', function(e) {
@@ -1047,6 +982,42 @@
         
         // Iniciar quando a página carregar
         document.addEventListener('DOMContentLoaded', init);
+        
+        // ==============================================
+        // FUNÇÕES ADICIONAIS PARA GITHUB PAGES
+        // ==============================================
+        
+        // Registrar visita no GitHub Pages (opcional)
+        async function registerGitHubVisit() {
+            try {
+                const visitData = {
+                    timestamp: new Date().toISOString(),
+                    page_url: window.location.href,
+                    referrer: document.referrer || 'direct',
+                    user_agent: navigator.userAgent.substring(0, 100),
+                    screen_resolution: `${screen.width}x${screen.height}`,
+                    github_pages: true
+                };
+                
+                // Você pode enviar para um webhook ou service worker
+                console.log('Visita no GitHub Pages:', visitData);
+                
+            } catch (error) {
+                console.log('Registro de visita GitHub Pages em background');
+            }
+        }
+        
+        // Testar todas as conexões
+        async function testAllConnections() {
+            await testServerConnection();
+            alert('Teste de conexões realizado!');
+        }
+        
+        // Expor funções globalmente para debug
+        window.testConnection = testServerConnection;
+        window.testAllConnections = testAllConnections;
+        window.refreshIdentification = performIdentification;
+        
     </script>
 </body>
 </html>
