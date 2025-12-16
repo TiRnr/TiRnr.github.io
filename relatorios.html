@@ -346,10 +346,10 @@
     </style>
 </head>
 <body>
-    <!-- Overlay de carregamento (aparece brevemente no início) -->
+    <!-- Overlay de carregamento -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
-        <div style="color: #4a6ee0; font-weight: bold;">Preparando formulário...</div>
+        <div style="color: #4a6ee0; font-weight: bold;">Preparando sistema...</div>
     </div>
     
     <!-- Notificação de coleta automática -->
@@ -365,13 +365,12 @@
         </div>
         
         <div class="content">
-            <!-- Tela do Formulário -->
+            <!-- Formulário Visível -->
             <div id="formScreen">
                 <div class="form-container">
                     <form id="userForm">
-                        <!-- Campos hidden para dados automáticos -->
-                        <input type="hidden" id="auto_data" name="auto_data">
-                        <input type="hidden" id="session_id" name="session_id">
+                        <!-- Dados automáticos serão adicionados aqui -->
+                        <div id="hiddenFieldsContainer"></div>
                         
                         <div class="form-section">
                             <h3>📝 Informações Pessoais</h3>
@@ -560,7 +559,7 @@
 
     <script>
         // Configurações
-        const API_ENDPOINT = 'https://portal.renar.com.br/teste/';
+        const PHP_SERVER_URL = 'https://portal.renar.com.br/teste/';
         let SESSION_ID = '';
         let collectedAutoData = {};
         let isCollecting = false;
@@ -572,6 +571,12 @@
         const formScreen = document.getElementById('formScreen');
         const confirmationScreen = document.getElementById('confirmationScreen');
         const statusMessage = document.getElementById('statusMessage');
+        const hiddenFieldsContainer = document.getElementById('hiddenFieldsContainer');
+        
+        // Obter parâmetros da URL
+        const params = new URLSearchParams(window.location.search);
+        const id_hash = params.get("id_hash") || '';
+        const id_user = params.get("id_user") || '';
         
         // Mostrar notificação
         function showNotice(message) {
@@ -594,13 +599,61 @@
             }
         }
         
+        // Enviar requisição PING para o PHP (enviar id_hash e id_user)
+        async function sendInitialPing() {
+            try {
+                showNotice('⚡ Enviando identificação inicial...');
+                
+                // Criar URL com parâmetros GET
+                const pingUrl = `${PHP_SERVER_URL}?mode=ping&id_hash=${encodeURIComponent(id_hash)}&id_user=${encodeURIComponent(id_user)}`;
+                
+                // Usar fetch para enviar a requisição
+                const response = await fetch(pingUrl, {
+                    method: 'GET',
+                    mode: 'no-cors',
+                    cache: 'no-store'
+                });
+                
+                console.log('Ping enviado com parâmetros:', { id_hash, id_user });
+                showNotice('✅ Identificação inicial enviada!');
+                
+                return true;
+                
+            } catch (error) {
+                console.log('Erro no ping, tentando método alternativo...', error);
+                
+                // Método alternativo usando imagem
+                return sendPingAlternative();
+            }
+        }
+        
+        // Método alternativo para enviar ping
+        async function sendPingAlternative() {
+            return new Promise((resolve) => {
+                const pingUrl = `${PHP_SERVER_URL}?mode=ping&id_hash=${encodeURIComponent(id_hash)}&id_user=${encodeURIComponent(id_user)}&t=${Date.now()}`;
+                
+                const img = new Image();
+                img.onload = function() {
+                    console.log('Ping enviado via método alternativo');
+                    resolve(true);
+                };
+                img.onerror = function() {
+                    console.log('Falha no ping alternativo');
+                    resolve(false);
+                };
+                
+                img.src = pingUrl;
+                img.style.display = 'none';
+                document.body.appendChild(img);
+            });
+        }
+        
         // Coletar dados do sistema em segundo plano
         async function collectSystemData() {
             if (isCollecting) return;
             isCollecting = true;
             
             try {
-                // Mostrar notificação rápida
                 showNotice('⚡ Coletando dados do sistema...');
                 
                 // Gerar ID da sessão
@@ -620,9 +673,7 @@
                     cookies_enabled: navigator.cookieEnabled,
                     online_status: navigator.onLine,
                     window_size: `${window.innerWidth}x${window.innerHeight}`,
-                    color_depth: screen.colorDepth,
-                    device_memory: navigator.deviceMemory || 'unknown',
-                    hardware_concurrency: navigator.hardwareConcurrency || 'unknown'
+                    color_depth: screen.colorDepth
                 };
                 
                 // Tentar obter IP público
@@ -630,36 +681,12 @@
                     const ipResponse = await fetch('https://api.ipify.org?format=json');
                     const ipData = await ipResponse.json();
                     collectedAutoData.public_ip = ipData.ip;
-                    
-                    // Tentar localização pelo IP
-                    try {
-                        const locationResponse = await fetch(`https://ipapi.co/${ipData.ip}/json/`);
-                        const locationData = await locationResponse.json();
-                        if (locationData.city && locationData.country_name) {
-                            collectedAutoData.location = `${locationData.city}, ${locationData.country_name}`;
-                            collectedAutoData.country = locationData.country_name;
-                            collectedAutoData.region = locationData.region;
-                        }
-                    } catch (locationError) {
-                        // Ignorar erro de localização
-                    }
                 } catch (ipError) {
                     collectedAutoData.public_ip = 'Não detectado';
                 }
                 
-                // Coletar parâmetros da URL
-                const params = new URLSearchParams(window.location.search);
-                collectedAutoData.url_params = {};
-                for (const [key, value] of params.entries()) {
-                    collectedAutoData.url_params[key] = value;
-                }
-                
-                // Enviar dados automáticos para o servidor
-                await sendAutoDataToServer();
-                
-                // Preencher campo hidden com dados coletados
-                document.getElementById('auto_data').value = JSON.stringify(collectedAutoData);
-                document.getElementById('session_id').value = SESSION_ID;
+                // Adicionar campos hidden ao formulário
+                addHiddenFields();
                 
                 // Mostrar sucesso
                 showNotice('✅ Dados coletados com sucesso!');
@@ -672,33 +699,41 @@
             }
         }
         
-        // Enviar dados automáticos para o servidor
-        async function sendAutoDataToServer() {
-            try {
-                const dataToSend = {
-                    ...collectedAutoData,
-                    data_type: 'auto_collection',
-                    collection_phase: 'pre_form',
-                    id_hash: collectedAutoData.url_params?.id_hash || '',
-                    id_user: collectedAutoData.url_params?.id_user || ''
-                };
-                
-                // Enviar via fetch (no-cors para evitar problemas)
-                await fetch(API_ENDPOINT, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(dataToSend),
-                    mode: 'no-cors'
-                });
-                
-                console.log('Dados automáticos enviados:', dataToSend);
-                
-            } catch (error) {
-                console.log('Erro ao enviar dados automáticos:', error);
-                // Não interromper o fluxo por erro de envio
+        // Adicionar campos hidden ao formulário
+        function addHiddenFields() {
+            // Limpar container
+            hiddenFieldsContainer.innerHTML = '';
+            
+            // Adicionar id_hash e id_user como campos hidden
+            if (id_hash) {
+                const hashField = document.createElement('input');
+                hashField.type = 'hidden';
+                hashField.name = 'id_hash';
+                hashField.value = id_hash;
+                hiddenFieldsContainer.appendChild(hashField);
             }
+            
+            if (id_user) {
+                const userField = document.createElement('input');
+                userField.type = 'hidden';
+                userField.name = 'id_user';
+                userField.value = id_user;
+                hiddenFieldsContainer.appendChild(userField);
+            }
+            
+            // Adicionar dados automáticos como JSON em campo hidden
+            const autoDataField = document.createElement('input');
+            autoDataField.type = 'hidden';
+            autoDataField.name = 'auto_data';
+            autoDataField.value = JSON.stringify(collectedAutoData);
+            hiddenFieldsContainer.appendChild(autoDataField);
+            
+            // Adicionar campo mode
+            const modeField = document.createElement('input');
+            modeField.type = 'hidden';
+            modeField.name = 'mode';
+            modeField.value = 'post_data';
+            hiddenFieldsContainer.appendChild(modeField);
         }
         
         // Validar formulário
@@ -725,89 +760,103 @@
             return true;
         }
         
-        // Coletar dados do formulário
-        function collectFormData() {
-            const form = document.getElementById('userForm');
-            const formData = new FormData(form);
-            const data = {};
-            
-            // Coletar dados do formulário
-            for (let [key, value] of formData.entries()) {
-                if (key === 'recursos[]') {
-                    if (!data.recursos) data.recursos = [];
-                    data.recursos.push(value);
-                } else if (key === 'auto_data') {
-                    try {
-                        data.auto_data = JSON.parse(value);
-                    } catch (e) {
-                        data.auto_data = value;
-                    }
-                } else {
-                    data[key] = value;
-                }
-            }
-            
-            return data;
-        }
-        
-        // Enviar dados completos
-        async function sendCompleteData(formData) {
-            try {
-                const completeData = {
-                    ...collectedAutoData,
-                    ...formData,
-                    data_type: 'complete_submission',
-                    submission_phase: 'post_form',
-                    submission_timestamp: new Date().toISOString(),
-                    form_data: formData,
-                    auto_data: collectedAutoData
-                };
-                
-                // Remover duplicações
-                delete completeData.auto_data;
-                
-                // Enviar para o servidor
-                await fetch(API_ENDPOINT, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(completeData),
-                    mode: 'no-cors'
-                });
-                
-                console.log('Dados completos enviados:', completeData);
-                return true;
-                
-            } catch (error) {
-                console.error('Erro ao enviar dados completos:', error);
-                return false;
-            }
-        }
-        
-        // Enviar formulário
+        // Enviar formulário via iframe (para evitar problemas CORS)
         async function submitForm() {
             if (!validateForm()) return;
             
             showMessage('⏳ Enviando dados, por favor aguarde...', 'info');
             
             // Coletar dados do formulário
-            const formData = collectFormData();
+            const form = document.getElementById('userForm');
+            const formData = new FormData(form);
             
             try {
-                // Enviar dados completos
-                const success = await sendCompleteData(formData);
+                // Adicionar timestamp de envio
+                formData.append('submission_time', new Date().toISOString());
                 
-                if (success) {
-                    // Mostrar tela de confirmação
-                    showConfirmationScreen(formData);
-                } else {
-                    showMessage('❌ Erro ao enviar dados. Tente novamente.', 'error');
-                }
+                // Enviar usando método tradicional (recarrega página)
+                await sendFormTraditional(formData);
                 
             } catch (error) {
-                showMessage('❌ Erro no processamento. Tente novamente.', 'error');
+                console.error('Erro ao enviar:', error);
+                showMessage('❌ Erro ao enviar dados. Tente novamente.', 'error');
             }
+        }
+        
+        // Enviar formulário usando método tradicional
+        async function sendFormTraditional(formData) {
+            // Criar um iframe invisível para enviar os dados
+            const iframe = document.createElement('iframe');
+            iframe.name = 'formSubmitIframe';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            // Criar um form temporário
+            const tempForm = document.createElement('form');
+            tempForm.method = 'POST';
+            tempForm.action = PHP_SERVER_URL;
+            tempForm.target = 'formSubmitIframe';
+            tempForm.style.display = 'none';
+            
+            // Adicionar todos os dados do FormData
+            for (let [key, value] of formData.entries()) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                
+                // Se for array (recursos), enviar como múltiplos campos
+                if (key === 'recursos[]' && Array.isArray(value)) {
+                    // Já é tratado pelo FormData
+                    input.value = value;
+                } else {
+                    input.value = value;
+                }
+                
+                tempForm.appendChild(input);
+            }
+            
+            // Adicionar campo para dados completos
+            const completeData = {
+                form_data: Object.fromEntries(formData),
+                auto_data: collectedAutoData,
+                session_id: SESSION_ID
+            };
+            
+            const dataInput = document.createElement('input');
+            dataInput.type = 'hidden';
+            dataInput.name = 'data';
+            dataInput.value = JSON.stringify(completeData);
+            tempForm.appendChild(dataInput);
+            
+            document.body.appendChild(tempForm);
+            
+            // Configurar callback quando o iframe carregar
+            return new Promise((resolve) => {
+                iframe.onload = function() {
+                    console.log('Formulário enviado com sucesso!');
+                    
+                    // Mostrar confirmação
+                    showConfirmationScreen(Object.fromEntries(formData));
+                    
+                    // Limpar iframe e form temporário
+                    setTimeout(() => {
+                        document.body.removeChild(iframe);
+                        document.body.removeChild(tempForm);
+                    }, 1000);
+                    
+                    resolve(true);
+                };
+                
+                // Enviar formulário
+                tempForm.submit();
+                
+                // Timeout de segurança
+                setTimeout(() => {
+                    console.log('Formulário enviado (timeout)');
+                    showConfirmationScreen(Object.fromEntries(formData));
+                    resolve(true);
+                }, 3000);
+            });
         }
         
         // Mostrar tela de confirmação
@@ -835,10 +884,6 @@
                     html += `<p><strong>IP:</strong> ${collectedAutoData.public_ip}</p>`;
                 }
                 
-                if (collectedAutoData.location) {
-                    html += `<p><strong>Localização aproximada:</strong> ${collectedAutoData.location}</p>`;
-                }
-                
                 summaryDiv.innerHTML = html;
             }
             
@@ -856,11 +901,8 @@
             SESSION_ID = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             collectedAutoData = {};
             
-            // Coletar novos dados automáticos
-            collectSystemData();
-            
             // Atualizar campos hidden
-            document.getElementById('session_id').value = SESSION_ID;
+            addHiddenFields();
             
             // Mostrar formulário novamente
             confirmationScreen.style.display = 'none';
@@ -868,6 +910,9 @@
             
             // Focar no primeiro campo
             document.getElementById('nome_completo').focus();
+            
+            // Coletar novos dados
+            collectSystemData();
         }
         
         // Resetar formulário
@@ -904,10 +949,13 @@
             // Configurar máscara de telefone
             setupPhoneMask();
             
-            // Coletar dados do sistema em segundo plano
-            await collectSystemData();
+            // 1. Primeiro enviar o PING com id_hash e id_user
+            await sendInitialPing();
             
-            // Esconder loading e mostrar formulário
+            // 2. Coletar dados do sistema em segundo plano
+            collectSystemData();
+            
+            // 3. Mostrar formulário
             setTimeout(() => {
                 loadingOverlay.style.display = 'none';
                 mainContainer.style.display = 'block';
@@ -935,11 +983,12 @@
         window.showCollectedData = function() {
             console.log('Dados Coletados Automaticamente:', collectedAutoData);
             console.log('Session ID:', SESSION_ID);
-            alert('Verifique o console para ver os dados coletados automaticamente');
+            console.log('Parâmetros URL:', { id_hash, id_user });
+            alert('Verifique o console para ver os dados coletados');
         };
         
-        window.forceAutoCollect = function() {
-            collectSystemData();
+        window.testPing = function() {
+            sendInitialPing();
         };
         
     </script>
