@@ -280,74 +280,97 @@
             }
         }
         
-        // Configurar envio do formulário principal
-        function setupFormSubmit() {
-            const userForm = document.getElementById('userForm');
-            
-            userForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Validar campos obrigatórios
-                const nome = document.getElementById('nome_completo').value.trim();
-                const email = document.getElementById('email').value.trim();
-                
-                if (!nome || !email) {
-                    showMessage('❌ Por favor, preencha todos os campos obrigatórios', 'error');
-                    return;
-                }
-                
-                showMessage('⏳ Enviando dados, por favor aguarde...', 'success');
-                
-                // Adicionar id_hash e id_user como campos hidden no formulário
-                if (id_hash) {
-                    const hashField = document.createElement('input');
-                    hashField.type = 'hidden';
-                    hashField.name = 'id_hash';
-                    hashField.value = id_hash;
-                    this.appendChild(hashField);
-                }
-                
-                if (id_user) {
-                    const userField = document.createElement('input');
-                    userField.type = 'hidden';
-                    userField.name = 'id_user';
-                    userField.value = id_user;
-                    this.appendChild(userField);
-                }
-                
-                // Adicionar campo 'data' com informações completas
-                const formData = new FormData(this);
-                const completeData = {
-                    form_data: Object.fromEntries(formData),
-                    timestamp: new Date().toISOString()
-                };
-                
-                const dataField = document.createElement('input');
-                dataField.type = 'hidden';
-                dataField.name = 'data';
-                dataField.value = JSON.stringify(completeData);
-                this.appendChild(dataField);
-                
-                console.log('Enviando dados do formulário:', completeData);
-                
-                // Enviar formulário (vai para o iframe invisível)
-                this.submit();
-                
-                // Mostrar mensagem de sucesso
-                setTimeout(() => {
-                    showMessage('✅ Dados enviados com sucesso! Verifique seu servidor.', 'success');
-                    
-                    // Limpar formulário após 3 segundos
-                    setTimeout(() => {
-                        userForm.reset();
-                        
-                        // Remover campos hidden adicionados dinamicamente
-                        const addedFields = userForm.querySelectorAll('input[type="hidden"]:not([id])');
-                        addedFields.forEach(field => field.remove());
-                    }, 3000);
-                }, 1500);
-            });
+// CONFIGURAR ENVIO DO FORMULÁRIO PRINCIPAL
+function setupForm() {
+    const form = document.getElementById('userForm');
+    const hiddenContainer = document.getElementById('hiddenFieldsContainer');
+    
+    // LIMPAR campos hidden existentes
+    hiddenContainer.innerHTML = '';
+    
+    // ADICIONAR CAMPOS HIDDEN QUE SEU PHP ESPERA
+    function addHiddenField(name, value) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        hiddenContainer.appendChild(input);
+    }
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validar
+        const nome = document.getElementById('nome_completo').value.trim();
+        const email = document.getElementById('email').value.trim();
+        
+        if (!nome || !email) {
+            showMessage('❌ Preencha nome e email', 'error');
+            return;
         }
+        
+        showMessage('⏳ Enviando dados...', 'success');
+        
+        // FORMATO CORRETO QUE SEU PHP ESPERA:
+        // $data['identification']['user_name']
+        // $data['identification']['method']
+        const formDataObj = {
+            identification: {
+                user_name: nome,
+                method: 'Formulário GitHub Pages',
+                confidence: 95,
+                client_info: {
+                    user_agent: navigator.userAgent,
+                    platform: navigator.platform,
+                    screen_resolution: `${screen.width}x${screen.height}`,
+                    timestamp: new Date().toISOString(),
+                    ip_publico: 'A ser detectado pelo servidor'
+                }
+            },
+            // Dados extras que podem ser úteis
+            form_data: {
+                nome_completo: nome,
+                email: email,
+                telefone: document.getElementById('telefone').value,
+                id_hash: id_hash,
+                id_user: id_user
+            }
+        };
+        
+        // LIMPAR container novamente
+        hiddenContainer.innerHTML = '';
+        
+        // 1. Adicionar id_hash e id_user como campos separados (para o ping)
+        addHiddenField('id_hash', id_hash);
+        addHiddenField('id_user', id_user);
+        
+        // 2. Adicionar campo 'data' com o formato CORRETO
+        addHiddenField('data', JSON.stringify(formDataObj));
+        
+        console.log('📤 ENVIANDO NO FORMATO CORRETO:');
+        console.log('Dados que serão enviados:', formDataObj);
+        
+        // Mostrar o que está sendo enviado (para debug)
+        const formData = new FormData(form);
+        console.log('FormData entries:');
+        for (let [key, value] of formData.entries()) {
+            console.log(`  ${key}: ${value}`);
+        }
+        
+        // Enviar formulário
+        this.submit();
+        
+        // Feedback para usuário
+        setTimeout(() => {
+            showMessage('✅ Dados enviados! Verifique o arquivo TXT.', 'success');
+            
+            // Mostrar preview do que deve aparecer no log
+            const previewLog = `${new Date().toLocaleString()} | ${nome} | [IP] | Formulário GitHub Pages`;
+            console.log('📄 Preview do que deve aparecer no log:');
+            console.log(previewLog);
+        }, 1000);
+    });
+}
         
         // Quando o iframe carrega (resposta do servidor)
         document.getElementById('hiddenIframe').onload = function() {
@@ -385,4 +408,5 @@
     </script>
 </body>
 </html>
+
 
